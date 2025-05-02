@@ -13,7 +13,6 @@ import { TicketService } from './ticket.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketStatus } from './enum/ticket-status.enum';
-import { BaseResponseDto } from '@/shared/dto/base-response.dto';
 import { ApiResponse } from '@nestjs/swagger';
 
 @Controller('tickets')
@@ -24,87 +23,100 @@ export class TicketController {
   @ApiResponse({
     status: 200,
     description: 'Ticket fetched successfully',
-    type: BaseResponseDto,
   })
   async create(@Body() dto: CreateTicketDto) {
     const newTicket = await this.ticketService.create(dto);
-    return new BaseResponseDto(201, 'Ticket created successfully', newTicket);
+    return {
+      statusCode: 201,
+      message: 'Ticket created successfully',
+      data: newTicket,
+    };
   }
 
   @Get()
   @ApiResponse({
     status: 200,
     description: 'Tickets fetched successfully',
-    type: BaseResponseDto,
   })
   async findAll(@Query('status') status?: TicketStatus) {
     const tickets = await this.ticketService.findAll(status);
-    return new BaseResponseDto(200, 'Tickets fetched successfully', tickets);
+    return {
+      statusCode: 200,
+      message: 'Tickets fetched successfully',
+      data: tickets,
+    };
   }
 
   @Get('user/:userId')
   @ApiResponse({
     status: 200,
     description: 'User tickets fetched successfully',
-    type: BaseResponseDto,
   })
   async findByUser(@Param('userId') userId: string) {
     const tickets = await this.ticketService.findByUser(userId);
-    return new BaseResponseDto(
-      200,
-      'User tickets fetched successfully',
-      tickets,
-    );
+    return {
+      statusCode: 200,
+      message: 'User tickets fetched successfully',
+      data: tickets,
+    };
   }
 
   @Get(':id')
   @ApiResponse({
     status: 200,
     description: 'Ticket fetched successfully',
-    type: BaseResponseDto,
   })
   async findOne(@Param('id') id: string) {
     const ticket = await this.ticketService.findOne(id);
-    return new BaseResponseDto(200, 'Ticket fetched successfully', ticket);
+    return {
+      statusCode: 200,
+      message: 'Ticket fetched successfully',
+      data: ticket,
+    };
   }
 
   @Patch(':id/status')
   @ApiResponse({
     status: 200,
     description: 'Ticket status updated successfully',
-    type: BaseResponseDto,
   })
   async updateStatus(
     @Param('id') id: string,
     @Body('status') status: TicketStatus,
   ) {
     const updated = await this.ticketService.updateStatus(id, status);
-    return new BaseResponseDto(
-      200,
-      'Ticket status updated successfully',
-      updated,
-    );
+    return {
+      statusCode: 200,
+      message: 'Ticket status updated successfully',
+      data: updated,
+    };
   }
 
   @Patch(':id/reply')
   @ApiResponse({
     status: 200,
     description: 'Reply added successfully',
-    type: BaseResponseDto,
   })
   async addReply(@Param('id') id: string, @Body() dto: UpdateTicketDto) {
     const updated = await this.ticketService.addReply(id, dto);
-    return new BaseResponseDto(200, 'Reply added successfully', updated);
+    return {
+      statusCode: 200,
+      message: 'Reply added successfully',
+      data: updated,
+    };
   }
 
   @Delete(':id')
   @ApiResponse({
     status: 200,
     description: 'Ticket deleted successfully',
-    type: BaseResponseDto,
   })
   async remove(@Param('id') id: string) {
     const deleted = await this.ticketService.remove(id);
-    return new BaseResponseDto(200, 'Ticket deleted successfully', deleted);
+    return {
+      statusCode: 200,
+      message: 'Ticket deleted successfully',
+      data: deleted,
+    };
   }
 }
