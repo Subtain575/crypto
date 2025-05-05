@@ -1,42 +1,73 @@
-// import {
-//   Controller,
-//   Get,
-//   Post,
-//   Body,
-//   Patch,
-//   Param,
-//   Delete,
-// } from '@nestjs/common';
-// import { CourseService } from './course.service';
-// import { CreateCourseDto } from './dto/create-course.dto';
-// import { UpdateCourseDto } from './dto/update-course.dto';
+// src/course/course.controller.ts
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
+import { CourseService } from './course.service';
+import { CreateCourseDto } from './dto/create-course.dto';
+import { TrackProgressDto } from './dto/track-progress.dto';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../auth/enums/user-role.enum';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 
-// @Controller('course')
-// export class CourseController {
-//   constructor(private readonly courseService: CourseService) {}
+@ApiTags('Courses')
+@ApiBearerAuth()
+@Controller('courses')
+export class CourseController {
+  constructor(private readonly courseService: CourseService) {}
 
-//   @Post()
-//   create(@Body() createCourseDto: CreateCourseDto) {
-//     return this.courseService.create(createCourseDto);
-//   }
+  @Get()
+  getAll() {
+    return this.courseService.getAllCourses();
+  }
 
-//   @Get()
-//   findAll() {
-//     return this.courseService.findAll();
-//   }
+  @Get(':id')
+  getById(@Param('id') id: string) {
+    return this.courseService.getCourseById(id);
+  }
 
-//   @Get(':id')
-//   findOne(@Param('id') id: string) {
-//     return this.courseService.findOne(+id);
-//   }
+  @Post()
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  create(@Body() dto: CreateCourseDto) {
+    return this.courseService.createCourse(dto);
+  }
 
-//   @Patch(':id')
-//   update(@Param('id') id: string, @Body() updateCourseDto: UpdateCourseDto) {
-//     return this.courseService.update(+id, updateCourseDto);
-//   }
+  @Put(':id')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  update(@Param('id') id: string, @Body() dto: CreateCourseDto) {
+    return this.courseService.updateCourse(id, dto);
+  }
 
-//   @Delete(':id')
-//   remove(@Param('id') id: string) {
-//     return this.courseService.remove(+id);
-//   }
-// }
+  @Delete(':id')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  delete(@Param('id') id: string) {
+    return this.courseService.deleteCourse(id);
+  }
+
+  @Post(':id/progress')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.USER)
+  trackProgress(
+    @Param('id') courseId: string,
+    @Request() req: Request & { user: { _id: string } },
+    @Body() dto: TrackProgressDto,
+  ) {
+    return this.courseService.trackProgress(courseId, req.user._id, dto);
+  }
+}

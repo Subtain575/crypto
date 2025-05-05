@@ -1,11 +1,22 @@
-import mongoose from 'mongoose';
+// src/course/schemas/course.schema.ts
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-export const CourseSchema = new mongoose.Schema(
-  {
-    title: String,
-    description: String,
-    level: String,
-    videos: [String],
-  },
-  { timestamps: true },
-);
+export type CourseDocument = Course & Document;
+
+@Schema({ timestamps: true })
+export class Course {
+  @Prop({ required: true })
+  title: string;
+
+  @Prop()
+  description: string;
+
+  @Prop({ required: true })
+  level: string;
+
+  @Prop({ type: [String] })
+  videoUrls: string[];
+}
+
+export const CourseSchema = SchemaFactory.createForClass(Course);
