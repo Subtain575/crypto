@@ -8,12 +8,13 @@ import {
   Patch,
   Query,
   Delete,
+  NotFoundException,
 } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketStatus } from './enum/ticket-status.enum';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 @Controller('tickets')
 export class TicketController {
@@ -26,25 +27,21 @@ export class TicketController {
   })
   async create(@Body() dto: CreateTicketDto) {
     const newTicket = await this.ticketService.create(dto);
-    return {
-      statusCode: 201,
-      message: 'Ticket created successfully',
-      data: newTicket,
-    };
+    if (!newTicket) {
+      throw new NotFoundException('Ticket not created');
+    }
+    return newTicket;
   }
 
   @Get()
+  @ApiQuery({ name: 'status', enum: TicketStatus, required: false })
   @ApiResponse({
     status: 200,
     description: 'Tickets fetched successfully',
   })
   async findAll(@Query('status') status?: TicketStatus) {
     const tickets = await this.ticketService.findAll(status);
-    return {
-      statusCode: 200,
-      message: 'Tickets fetched successfully',
-      data: tickets,
-    };
+    return tickets;
   }
 
   @Get('user/:userId')
@@ -54,11 +51,10 @@ export class TicketController {
   })
   async findByUser(@Param('userId') userId: string) {
     const tickets = await this.ticketService.findByUser(userId);
-    return {
-      statusCode: 200,
-      message: 'User tickets fetched successfully',
-      data: tickets,
-    };
+    if (!tickets) {
+      throw new NotFoundException('User tickets not found');
+    }
+    return tickets;
   }
 
   @Get(':id')
@@ -68,11 +64,10 @@ export class TicketController {
   })
   async findOne(@Param('id') id: string) {
     const ticket = await this.ticketService.findOne(id);
-    return {
-      statusCode: 200,
-      message: 'Ticket fetched successfully',
-      data: ticket,
-    };
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+    return ticket;
   }
 
   @Patch(':id/status')
@@ -85,11 +80,10 @@ export class TicketController {
     @Body('status') status: TicketStatus,
   ) {
     const updated = await this.ticketService.updateStatus(id, status);
-    return {
-      statusCode: 200,
-      message: 'Ticket status updated successfully',
-      data: updated,
-    };
+    if (!updated) {
+      throw new NotFoundException('Ticket not found');
+    }
+    return updated;
   }
 
   @Patch(':id/reply')
@@ -99,11 +93,10 @@ export class TicketController {
   })
   async addReply(@Param('id') id: string, @Body() dto: UpdateTicketDto) {
     const updated = await this.ticketService.addReply(id, dto);
-    return {
-      statusCode: 200,
-      message: 'Reply added successfully',
-      data: updated,
-    };
+    if (!updated) {
+      throw new NotFoundException('Ticket not found');
+    }
+    return updated;
   }
 
   @Delete(':id')
@@ -113,10 +106,9 @@ export class TicketController {
   })
   async remove(@Param('id') id: string) {
     const deleted = await this.ticketService.remove(id);
-    return {
-      statusCode: 200,
-      message: 'Ticket deleted successfully',
-      data: deleted,
-    };
+    if (!deleted) {
+      throw new NotFoundException('Ticket not found');
+    }
+    return deleted;
   }
 }
