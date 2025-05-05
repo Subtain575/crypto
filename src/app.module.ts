@@ -4,7 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { TicketModule } from './support/ticket/ticket.module';
 import { ReplyModule } from './support/reply/reply.module';
-// import { CourseModule } from './course-module/course.module';
+import { CourseModule } from './course-module/course.module';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { ReplyModule } from './support/reply/reply.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
+      useFactory: (configService: ConfigService) => {
         const uri = configService.get<string>('MONGODB_URI');
         if (!uri) {
           throw new Error(
@@ -34,7 +34,7 @@ import { ReplyModule } from './support/reply/reply.module';
     AuthModule,
     TicketModule,
     ReplyModule,
-    // CourseModuleModule,
+    CourseModule,
   ],
   controllers: [],
   providers: [],

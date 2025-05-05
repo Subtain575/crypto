@@ -9,7 +9,7 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from './entities/user.entity';
+import { User, UserDetails, UserDocument } from './entities/user.entity';
 import { UpdateUserDto } from './dtos/update-user.dto';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<any> {
+  async register(registerDto: RegisterDto) {
     const { email, password, name } = registerDto;
 
     const existingUser = await this.userModel.findOne({ email });
@@ -52,7 +52,7 @@ export class AuthService {
     };
   }
 
-  async login(loginDto: LoginDto): Promise<any> {
+  async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
     const user = await this.userModel.findOne({ email });
@@ -77,7 +77,7 @@ export class AuthService {
     };
   }
 
-  async findAll(currentUser: any): Promise<UserDocument[]> {
+  async findAll(currentUser: UserDetails): Promise<UserDocument[]> {
     if (currentUser.role !== 'admin') {
       throw new UnauthorizedException('Only admin can access all users');
     }
@@ -85,7 +85,7 @@ export class AuthService {
     return this.userModel.find().select('-password').exec();
   }
 
-  async findOne(id: string, currentUser: any): Promise<UserDocument> {
+  async findOne(id: string, currentUser: UserDetails): Promise<UserDocument> {
     const isAdmin = currentUser.role === 'admin';
     const isSelf = currentUser.sub === id;
 
@@ -104,7 +104,7 @@ export class AuthService {
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
-    currentUser: any,
+    currentUser: UserDetails,
   ): Promise<UserDocument> {
     const isAdmin = currentUser.role === 'admin';
     const isSelf = currentUser.sub === id;
@@ -129,7 +129,7 @@ export class AuthService {
     return updatedUser;
   }
 
-  async delete(id: string, currentUser: any): Promise<UserDocument> {
+  async delete(id: string, currentUser: UserDetails): Promise<UserDocument> {
     if (currentUser.role !== 'admin') {
       throw new UnauthorizedException('Only admin can delete users');
     }

@@ -17,6 +17,7 @@ import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
 import { UserRole } from './roles.enum';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { UserDetails } from './entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -46,7 +47,7 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.Admin)
-  async protectedRoute() {
+  protectedRoute() {
     return { message: 'This is an admin protected route' };
   }
 
@@ -54,7 +55,7 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.User)
-  async protectedUserRoute() {
+  protectedUserRoute() {
     return { message: 'This is an user protected route' };
   }
 
@@ -62,14 +63,17 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @Roles(UserRole.Admin)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  async findAll(@Req() req) {
+  async findAll(@Req() req: Request & { user: UserDetails }) {
     return this.authService.findAll(req.user);
   }
 
   @Get('users/:id')
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard)
-  async findOne(@Param('id') id: string, @Req() req) {
+  async findOne(
+    @Param('id') id: string,
+    @Req() req: Request & { user: UserDetails },
+  ) {
     return this.authService.findOne(id, req.user);
   }
 
@@ -79,7 +83,7 @@ export class AuthController {
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateUserDto,
-    @Req() req,
+    @Req() req: Request & { user: UserDetails },
   ) {
     return this.authService.update(id, dto, req.user);
   }
@@ -88,7 +92,10 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @Roles(UserRole.Admin)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  async delete(@Param('id') id: string, @Req() req) {
+  async delete(
+    @Param('id') id: string,
+    @Req() req: Request & { user: UserDetails },
+  ) {
     return this.authService.delete(id, req.user);
   }
 }

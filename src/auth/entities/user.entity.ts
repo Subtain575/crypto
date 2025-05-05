@@ -33,3 +33,8 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+export type UserDetails = {
+  sub: string;
+  email: string;
+  role: string;
+};
