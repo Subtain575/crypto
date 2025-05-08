@@ -1,4 +1,3 @@
-// src/course/course.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -13,6 +12,7 @@ import {
 } from './schemas/user-progress.schema';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { TrackProgressDto } from './dto/track-progress.dto';
+import { Module, ModuleDocument } from './schemas/module.schema';
 
 @Injectable()
 export class CourseService {
@@ -21,6 +21,8 @@ export class CourseService {
     private courseModel: Model<CourseDocument>,
     @InjectModel(CourseProgress.name)
     private progressModel: Model<CourseProgressDocument>,
+    @InjectModel(Module.name)
+    private moduleModel: Model<ModuleDocument>,
   ) {}
 
   async getAllCourses() {
@@ -62,36 +64,39 @@ export class CourseService {
     return { message: 'Course deleted successfully' };
   }
 
-  async trackProgress(courseId: string, userId: string, dto: TrackProgressDto) {
-    if (!Types.ObjectId.isValid(courseId))
-      throw new BadRequestException('Invalid course ID');
+  async trackProgress(dto: TrackProgressDto) {
+    const { user, module, completed, watchedDuration, lastWatched, notes } =
+      dto;
 
-    const course = await this.courseModel.findById(courseId);
-    if (!course) throw new NotFoundException('Course not found');
+    if (!Types.ObjectId.isValid(user.toString()))
+      throw new BadRequestException('Invalid user ID');
+    if (!Types.ObjectId.isValid(module.toString()))
+      throw new BadRequestException('Invalid module ID');
 
-    const totalVideos = course.videoUrls.length;
-    if (dto.videoIndex < 0 || dto.videoIndex >= totalVideos) {
-      throw new BadRequestException('Invalid video index');
-    }
+    // Check if module exists
+    const moduleData = await this.moduleModel.findById(module);
+    if (!moduleData) throw new NotFoundException('Module not found');
 
-    let progress = await this.progressModel.findOne({ userId, courseId });
+    // Check if progress already exists
+    let progress = await this.progressModel.findOne({ user, module });
 
     if (!progress) {
+      // Create new progress
       progress = new this.progressModel({
-        userId,
-        courseId,
-        progress: new Map(),
-        percentageCompleted: 0,
+        user,
+        module,
+        completed,
+        watchedDuration,
+        lastWatched,
+        notes,
       });
+    } else {
+      // Update existing progress
+      progress.completed = completed;
+      progress.watchedDuration = watchedDuration;
+      progress.lastWatched = lastWatched || progress.lastWatched;
+      progress.notes = notes ?? progress.notes;
     }
-    progress.progress.set(dto.videoIndex, dto.completed);
-
-    const completedVideos = Array.from(progress.progress.values()).filter(
-      Boolean,
-    ).length;
-    progress.percentageCompleted = Math.round(
-      (completedVideos / totalVideos) * 100,
-    );
 
     await progress.save();
     return progress;

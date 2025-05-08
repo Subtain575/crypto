@@ -1,10 +1,18 @@
-import { Module } from '@nestjs/common';
+import {
+  Logger,
+  OnModuleInit,
+  MiddlewareConsumer,
+  Module,
+  OnApplicationBootstrap,
+} from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { TicketModule } from './support/ticket/ticket.module';
 import { ReplyModule } from './support/reply/reply.module';
 import { CourseModule } from './course-module/course.module';
+import { SubscribeModule } from './subscribe/subscribe.module';
+import { RawBodyMiddleware } from './subscribe/middelwares/raw-body.middelware';
 
 @Module({
   imports: [
@@ -35,8 +43,24 @@ import { CourseModule } from './course-module/course.module';
     TicketModule,
     ReplyModule,
     CourseModule,
+    SubscribeModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements OnApplicationBootstrap, OnModuleInit {
+  private readonly logger = new Logger(AppModule.name);
+
+  onModuleInit() {
+    this.logger.log('Module initialized');
+  }
+
+  onApplicationBootstrap() {
+    this.logger.log('Application bootstrap completed.');
+    // this.logger.log(EventCollector.getEvents());
+  }
+
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(RawBodyMiddleware).forRoutes('/subscription/webhook');
+  }
+}

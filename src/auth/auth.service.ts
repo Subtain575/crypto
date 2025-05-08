@@ -21,7 +21,7 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { email, password, name } = registerDto;
+    const { email, password, firstName, lastName } = registerDto;
 
     const existingUser = await this.userModel.findOne({ email });
     if (existingUser) {
@@ -32,7 +32,8 @@ export class AuthService {
     const newUser = new this.userModel({
       email,
       password: hashedPassword,
-      name,
+      firstName,
+      lastName,
       role: 'user',
     });
 
@@ -46,7 +47,8 @@ export class AuthService {
       user: {
         id: newUser._id,
         email: newUser.email,
-        name: newUser.name,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
         role: newUser.role,
       },
     };
@@ -71,7 +73,8 @@ export class AuthService {
       user: {
         id: user._id,
         email: user.email,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
       },
     };

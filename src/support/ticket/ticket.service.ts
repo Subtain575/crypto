@@ -30,8 +30,20 @@ export class TicketService {
     return ticket;
   }
 
-  async updateStatus(id: string, status: TicketStatus) {
-    return this.ticketModel.findByIdAndUpdate(id, { status }, { new: true });
+  async update(id: string, updateDto: CreateTicketDto) {
+    const updatedTicket = await this.ticketModel.findByIdAndUpdate(
+      id,
+      updateDto,
+      {
+        new: true,
+      },
+    );
+
+    if (!updatedTicket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    return updatedTicket;
   }
 
   async addReply(id: string, updateDto: UpdateTicketDto) {

@@ -70,16 +70,13 @@ export class TicketController {
     return ticket;
   }
 
-  @Patch(':id/status')
+  @Patch(':id')
   @ApiResponse({
     status: 200,
-    description: 'Ticket status updated successfully',
+    description: 'Ticket updated successfully',
   })
-  async updateStatus(
-    @Param('id') id: string,
-    @Body('status') status: TicketStatus,
-  ) {
-    const updated = await this.ticketService.updateStatus(id, status);
+  async update(@Param('id') id: string, @Body() dto: CreateTicketDto) {
+    const updated = await this.ticketService.update(id, dto);
     if (!updated) {
       throw new NotFoundException('Ticket not found');
     }

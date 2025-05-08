@@ -2,10 +2,33 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
+import * as bodyParser from 'body-parser';
+import { Request, Response, NextFunction } from 'express';
+import { ResponseInterceptor } from './interceptor/response-interceptor';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
+
+  app.useGlobalInterceptors(new ResponseInterceptor());
+
+  // CRITICAL: Set up raw body handling for Stripe and Paypal webhooks
+  // This must come BEFORE any json parsers
+  const callbackRoutes = ['/subscription/webhook']; // Array of webhook routes
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const originalUrl = req.originalUrl;
+
+    // Check if the originalUrl includes any of the callback routes
+    if (
+      originalUrl &&
+      callbackRoutes.some((route) => originalUrl.includes(route))
+    ) {
+      bodyParser.raw({ type: 'application/json' })(req, res, next);
+    } else {
+      next();
+    }
+  });
 
   app.enableCors();
 
