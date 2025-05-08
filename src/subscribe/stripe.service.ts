@@ -8,7 +8,14 @@ export class StripeService {
   private readonly logger = new Logger(StripeService.name);
 
   constructor(private configService: ConfigService) {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+    const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
+    if (!stripeKey) {
+      throw new Error(
+        'STRIPE_SECRET_KEY is not defined in environment variables',
+      );
+    }
+
+    this.stripe = new Stripe(stripeKey, {
       apiVersion: '2025-04-30.basil',
     });
   }
@@ -64,8 +71,8 @@ export class StripeService {
   private getPriceIdForPlan(plan: 'pro' | 'premium'): string {
     const priceId =
       plan === 'pro'
-        ? process.env.STRIPE_PRO_PLAN_ID
-        : process.env.STRIPE_PREMIUM_PLAN_ID;
+        ? this.configService.get<string>('STRIPE_PRO_PLAN_ID')
+        : this.configService.get<string>('STRIPE_PREMIUM_PLAN_ID');
 
     this.logger.log(`Getting price ID for plan ${plan}: ${priceId}`);
 
@@ -90,6 +97,12 @@ export class StripeService {
 
     try {
       const priceId = this.getPriceIdForPlan(plan);
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+
+      if (!frontendUrl) {
+        throw new Error('FRONTEND_URL is not defined in environment variables');
+      }
+
       this.logger.log(`Using price ID: ${priceId}`);
 
       const session = await this.stripe.checkout.sessions.create({
@@ -109,8 +122,8 @@ export class StripeService {
             planType: plan,
           },
         },
-        success_url: `${process.env.FRONTEND_URL}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.FRONTEND_URL}/subscription/cancel`,
+        success_url: `${frontendUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${frontendUrl}/subscription/cancel`,
       });
 
       this.logger.log(`Stripe checkout session created: ${session.id}`);
@@ -141,10 +154,19 @@ export class StripeService {
     console.log('bodyBuffer', bodyBuffer);
     console.log('signature', signature);
     try {
+      const webhookSecret = this.configService.get<string>(
+        'STRIPE_WEBHOOK_SECRET',
+      );
+      if (!webhookSecret) {
+        throw new Error(
+          'STRIPE_WEBHOOK_SECRET is not defined in environment variables',
+        );
+      }
+
       const event = this.stripe.webhooks.constructEvent(
         bodyBuffer,
         signature,
-        process.env.STRIPE_WEBHOOK_SECRET as string,
+        webhookSecret,
       );
       console.log('event', event);
 
