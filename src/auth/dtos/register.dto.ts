@@ -31,15 +31,6 @@ export class RegisterDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  role?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  department?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
   referredBy?: string;
 }
 
