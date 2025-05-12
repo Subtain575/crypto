@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Exclude } from 'class-transformer';
-import { UserRole } from '../roles.enum';
 
 export type UserDocument = User & Document;
 
@@ -25,9 +24,6 @@ export class User {
   @Prop({ default: false })
   emailVerified: boolean;
 
-  @Prop({ default: UserRole.User })
-  role: string;
-
   @Prop()
   lastLogin?: Date;
 
@@ -40,11 +36,14 @@ export class User {
   @Prop({ unique: true })
   referralCode?: string;
 
+  @Prop({ default: 0 })
+  rewardPoints: number;
+
+  @Prop({ default: 'user' })
+  role: string;
+
   @Prop({ type: [{ permission: String }], default: [] })
   permissions: { permission: string }[];
-
-  @Prop()
-  department?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

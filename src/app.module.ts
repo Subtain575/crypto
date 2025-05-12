@@ -13,6 +13,9 @@ import { ReplyModule } from './support/reply/reply.module';
 import { CourseModule } from './course-module/course.module';
 import { SubscribeModule } from './subscribe/subscribe.module';
 import { RawBodyMiddleware } from './subscribe/middelwares/raw-body.middelware';
+import { PortfolioModule } from './portfolio/portfolio.module';
+import { WalletModule } from './wallet/wallet.module';
+import { ReferralModule } from './referralSystem/referral.module';
 
 @Module({
   imports: [
@@ -44,6 +47,9 @@ import { RawBodyMiddleware } from './subscribe/middelwares/raw-body.middelware';
     ReplyModule,
     CourseModule,
     SubscribeModule,
+    WalletModule,
+    PortfolioModule,
+    ReferralModule,
   ],
   controllers: [],
   providers: [],
