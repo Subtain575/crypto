@@ -1,19 +1,66 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { Logger } from '@nestjs/common';
+import {
+  Logger,
+  ValidationPipe,
+  HttpException,
+  HttpStatus,
+  ArgumentsHost,
+} from '@nestjs/common';
 import * as bodyParser from 'body-parser';
 import { Request, Response, NextFunction } from 'express';
 import { ResponseInterceptor } from './interceptor/response-interceptor';
-import { ValidationPipe } from '@nestjs/common';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
+
+interface MongoError extends Error {
+  code: number;
+  keyPattern: Record<string, number>;
+  keyValue: Record<string, unknown>;
+}
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.useGlobalInterceptors(new ResponseInterceptor());
+
+  // Add global exception filter for MongoDB duplicate key errors
+  app.useGlobalFilters({
+    catch(exception: unknown, host: ArgumentsHost) {
+      const ctx = host.switchToHttp();
+      const response = ctx.getResponse<Response>();
+
+      if (
+        exception &&
+        typeof exception === 'object' &&
+        'code' in exception &&
+        (exception as MongoError).code === 11000
+      ) {
+        const mongoError = exception as MongoError;
+        const field = Object.keys(mongoError.keyPattern)[0];
+        const value = String(mongoError.keyValue[field]);
+        return response.status(HttpStatus.CONFLICT).json({
+          status: HttpStatus.CONFLICT,
+          message: `A record with this ${field} (${value}) already exists`,
+          error: 'Conflict',
+        });
+      }
+
+      if (exception instanceof HttpException) {
+        return response
+          .status(exception.getStatus())
+          .json(exception.getResponse());
+      }
+
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Internal server error',
+        error: exception instanceof Error ? exception.message : 'Unknown error',
+      });
+    },
+  });
 
   // CRITICAL: Set up raw body handling for Stripe and Paypal webhooks
   // This must come BEFORE any json parsers

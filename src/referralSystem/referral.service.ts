@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../auth/entities/user.entity';
 import { Model } from 'mongoose';
 import { customAlphabet } from 'nanoid';
 import { CreateUserWithReferralDto } from './dto/referral.dto';
-
+import { Types } from 'mongoose';
+import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class ReferralService {
   private generateId = customAlphabet(
@@ -30,12 +35,12 @@ export class ReferralService {
         throw new NotFoundException('Invalid referral code');
       }
     }
-
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await this.userModel.create({
       firstName,
       lastName,
       email,
-      password,
+      password: hashedPassword,
       referralCode: this.generateId(),
       referredBy: referredByUser?._id || null,
       rewardPoints: 0,
@@ -56,7 +61,12 @@ export class ReferralService {
   }
 
   async getReferralStats(userId: string) {
-    const referrals = await this.userModel.find({ referredBy: userId });
+    const referrals = await this.userModel.find({
+      referredBy: new Types.ObjectId(userId),
+    });
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestException('Invalid user ID');
+    }
     return {
       totalReferrals: referrals.length,
       referrals,

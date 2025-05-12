@@ -32,6 +32,7 @@ export class CreateUserWithReferralDto {
 
   @ApiProperty({ example: 'securePassword123' })
   @IsString()
+  @IsNotEmpty()
   @MinLength(6)
   password: string;
 
