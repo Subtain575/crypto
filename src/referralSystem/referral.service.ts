@@ -2,15 +2,20 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../auth/entities/user.entity';
 import { Model } from 'mongoose';
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import { CreateUserWithReferralDto } from './dto/referral.dto';
 
 @Injectable()
 export class ReferralService {
+  private generateId = customAlphabet(
+    '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    8,
+  );
+
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async generateReferralCode(userId: string) {
-    const referralCode = nanoid(8);
+    const referralCode = this.generateId();
     await this.userModel.findByIdAndUpdate(userId, { referralCode });
     return { referralCode };
   }
@@ -31,7 +36,7 @@ export class ReferralService {
       lastName,
       email,
       password,
-      referralCode: nanoid(8),
+      referralCode: this.generateId(),
       referredBy: referredByUser?._id || null,
       rewardPoints: 0,
     });
