@@ -13,9 +13,9 @@ import { ReplyModule } from './support/reply/reply.module';
 import { CourseModule } from './course-module/course.module';
 import { SubscribeModule } from './subscribe/subscribe.module';
 import { RawBodyMiddleware } from './subscribe/middelwares/raw-body.middelware';
-import { PortfolioModule } from './portfolio/portfolio.module';
+// import { PortfolioModule } from './portfolio/portfolio.module';
 // import { WalletModule } from './wallet/wallet.module';
-// import { ReferralModule } from './referralSystem/referral.module';
+import { ReferralModule } from './referralSystem/referral.module';
 
 @Module({
   imports: [
@@ -48,8 +48,8 @@ import { PortfolioModule } from './portfolio/portfolio.module';
     CourseModule,
     SubscribeModule,
     // WalletModule,
-    PortfolioModule,
-    // ReferralModule,
+    // PortfolioModule,
+    ReferralModule,
   ],
   controllers: [],
   providers: [],
