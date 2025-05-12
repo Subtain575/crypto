@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../auth/entities/user.entity';
@@ -58,6 +59,24 @@ export class ReferralService {
     }
 
     return user;
+  }
+  async login(email: string, plainPassword: string) {
+    const user = await this.userModel.findOne({ email });
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.password) {
+      throw new UnauthorizedException('User has no password set');
+    }
+
+    const isMatch = await bcrypt.compare(plainPassword, user.password);
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Return token or user info
+    return user; // Or JWT, etc.
   }
 
   async getReferralStats(userId: string) {
