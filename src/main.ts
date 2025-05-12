@@ -5,10 +5,13 @@ import { Logger } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
 import { Request, Response, NextFunction } from 'express';
 import { ResponseInterceptor } from './interceptor/response-interceptor';
+import { ValidationPipe } from '@nestjs/common';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.useGlobalInterceptors(new ResponseInterceptor());
 
@@ -32,9 +35,15 @@ async function bootstrap() {
 
   app.enableCors();
 
+  // Set global prefix
+  app.setGlobalPrefix('api');
+
+  // Serve static files
+  app.useStaticAssets(join(__dirname, '..', 'public'));
+
   const config = new DocumentBuilder()
-    .setTitle('Crypto Trading App')
-    .setDescription('API documentation for Crypto Trading App')
+    .setTitle('Crypto Trading API')
+    .setDescription('The Crypto Trading API description')
     .setVersion('1.0')
     .addBearerAuth(
       {
@@ -60,6 +69,15 @@ async function bootstrap() {
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css',
     ],
   });
+
+  // Global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
