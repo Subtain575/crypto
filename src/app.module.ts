@@ -16,6 +16,7 @@ import { RawBodyMiddleware } from './subscribe/middelwares/raw-body.middelware';
 // import { PortfolioModule } from './portfolio/portfolio.module';
 // import { WalletModule } from './wallet/wallet.module';
 import { ReferralModule } from './referralSystem/referral.module';
+import { SimulatedTradingModule } from './simulatedTrading/simulated-trading.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ReferralModule } from './referralSystem/referral.module';
     // WalletModule,
     // PortfolioModule,
     ReferralModule,
+    SimulatedTradingModule,
   ],
   controllers: [],
   providers: [],
