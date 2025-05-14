@@ -10,8 +10,8 @@ import {
 import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { SimulatedTradingService } from './simulated-trading.service';
 import { ExecuteTradeDto } from './dto/trade.dto';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { BinanceBalance } from './simulated-trading.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Simulated Trading')
 @UseGuards(JwtAuthGuard)
