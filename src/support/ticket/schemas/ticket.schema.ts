@@ -13,7 +13,7 @@ export class Ticket extends Document {
   @Prop({ required: true })
   message: string;
 
-  @Prop({ enum: TicketStatus, default: TicketStatus.OPEN })
+  @Prop({ type: String, enum: TicketStatus, default: TicketStatus.OPEN })
   status: TicketStatus;
 
   @Prop({ type: [Object], default: [] }) // Can enhance this with a separate reply schema

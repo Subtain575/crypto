@@ -26,6 +26,9 @@ interface AxiosErrorResponse {
 
 @Injectable()
 export class SimulatedTradingService {
+  private readonly BINANCE_URL =
+    process.env.BINANCE_BASE_URL || 'https://api.binance.com';
+
   constructor(
     @InjectModel(SimulatedTrade.name) private tradeModel: Model<SimulatedTrade>,
     @InjectModel(SimulatedPortfolio.name)
@@ -36,7 +39,7 @@ export class SimulatedTradingService {
     try {
       console.log('Fetching from Binance REST API:', symbol);
       const response = await axios.get<{ price: string }>(
-        `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`,
+        `${this.BINANCE_URL}/api/v3/ticker/price?symbol=${symbol}`,
       );
       return parseFloat(response.data.price);
     } catch (err) {
@@ -86,7 +89,7 @@ export class SimulatedTradingService {
       queryParams.append('signature', signature);
 
       const response = await axios.post(
-        `https://testnet.binance.vision/api/v3/order?${queryParams.toString()}`,
+        `${this.BINANCE_URL}/api/v3/order?${queryParams.toString()}`,
         null, // Empty body for POS
         {
           headers: {
