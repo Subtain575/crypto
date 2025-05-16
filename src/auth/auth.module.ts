@@ -9,7 +9,7 @@ import { User, UserSchema } from './entities/user.entity';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { WalletModule } from '@/wallet/wallet.module';
+import { WalletModule } from '../wallet/wallet.module';
 
 @Module({
   imports: [

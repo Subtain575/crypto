@@ -11,7 +11,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDetails, UserDocument } from './entities/user.entity';
 import { UpdateUserDto } from './dtos/update-user.dto';
-import { WalletService } from '@/wallet/wallet.service';
+import { WalletService } from '../wallet/wallet.service';
 
 @Injectable()
 export class AuthService {

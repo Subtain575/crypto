@@ -2,7 +2,7 @@ import { Controller, Post, Body, Get, Req, UseGuards } from '@nestjs/common';
 import { PortfolioService } from './portfolio.service';
 import { BuyDto } from './dto/buy.dto';
 import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { SellDto } from './dto/sell.dto';
 
