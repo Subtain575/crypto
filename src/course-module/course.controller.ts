@@ -8,6 +8,7 @@ import {
   Body,
   UseGuards,
   Request,
+  Req,
 } from '@nestjs/common';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
@@ -40,13 +41,11 @@ export class CourseController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   create(
-    @Request() req: Request & { user: { _id: string } },
     @Body() dto: CreateCourseDto,
+    @Req() req: Request & { user: { _id: string } },
   ) {
-    return this.courseService.createCourse({
-      ...dto,
-      createdBy: new Types.ObjectId(req.user._id),
-    });
+    const adminId = req.user._id; // from JWT token
+    return this.courseService.createCourse(dto, adminId);
   }
 
   @Put(':id')

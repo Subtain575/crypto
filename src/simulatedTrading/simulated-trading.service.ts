@@ -24,6 +24,23 @@ interface AxiosErrorResponse {
   message?: string;
 }
 
+interface BinanceOrderResponse {
+  fills: {
+    price: string;
+    qty: string;
+    commission: string;
+    commissionAsset: string;
+  }[];
+  [key: string]: any;
+}
+
+interface OrderResult {
+  success: boolean;
+  side: 'BUY' | 'SELL';
+  fills: BinanceOrderResponse['fills'];
+  data: any;
+}
+
 @Injectable()
 export class SimulatedTradingService {
   private readonly BINANCE_URL =
@@ -51,19 +68,46 @@ export class SimulatedTradingService {
     }
   }
 
-  async buyOnBinance(symbol: string, quantity: number) {
-    return this.placeMarketOrder(symbol, quantity, 'BUY');
+  async buyOnBinance(userId: string, symbol: string, quantity: number) {
+    const result = await this.placeMarketOrder(symbol, quantity, 'BUY');
+
+    const price = parseFloat(result.fills[0]?.price || '0');
+
+    await this.tradeModel.create({
+      user: userId,
+      symbol,
+      quantity,
+      type: 'BUY',
+      price,
+      createdAt: new Date(),
+    });
+
+    return result;
   }
 
-  async sellOnBinance(symbol: string, quantity: number) {
-    return this.placeMarketOrder(symbol, quantity, 'SELL');
+  async sellOnBinance(userId: string, symbol: string, quantity: number) {
+    const result = await this.placeMarketOrder(symbol, quantity, 'SELL');
+
+    const price = parseFloat(result.fills[0]?.price || '0');
+
+    await this.tradeModel.create({
+      user: userId,
+      symbol,
+      quantity,
+      type: 'SELL',
+      price,
+      createdAt: new Date(),
+    });
+
+    return result;
   }
 
+  // Updated method with proper return type and error handling
   private async placeMarketOrder(
     symbol: string,
     quantity: number,
     side: 'BUY' | 'SELL',
-  ) {
+  ): Promise<OrderResult> {
     try {
       const timestamp = Date.now();
       const type = 'MARKET';
@@ -75,32 +119,52 @@ export class SimulatedTradingService {
         timestamp: timestamp.toString(),
       });
 
-      // 👇 Binance requires different param for BUY and SELL
       if (side === 'BUY') {
         queryParams.append('quoteOrderQty', quantity.toString()); // Spend X USDT
       } else {
         queryParams.append('quantity', quantity.toString()); // Sell X coins
       }
 
-      const signature = createHmac('sha256', process.env.BINANCE_API_SECRET!)
+      // Make sure the API secret exists
+      if (!process.env.BINANCE_API_SECRET) {
+        throw new Error(
+          'BINANCE_API_SECRET is not defined in environment variables',
+        );
+      }
+
+      const signature = createHmac('sha256', process.env.BINANCE_API_SECRET)
         .update(queryParams.toString())
         .digest('hex');
 
       queryParams.append('signature', signature);
 
-      const response = await axios.post(
+      // Make sure the API key exists
+      if (!process.env.BINANCE_API_KEY) {
+        throw new Error(
+          'BINANCE_API_KEY is not defined in environment variables',
+        );
+      }
+
+      const response = await axios.post<BinanceOrderResponse>(
         `${this.BINANCE_URL}/api/v3/order?${queryParams.toString()}`,
-        null, // Empty body for POS
+        null,
         {
           headers: {
-            'X-MBX-APIKEY': process.env.BINANCE_API_KEY!,
+            'X-MBX-APIKEY': process.env.BINANCE_API_KEY,
           },
         },
       );
 
+      console.log('Binance order response:', response.data);
+
+      // The fixed line - properly using optional chaining and nullish coalescing
+      // This ensures we always have an array, even if response.data is null/undefined or doesn't have fills
+      const fills = response.data?.fills ?? [];
+
       return {
         success: true,
         side,
+        fills,
         data: response.data,
       };
     } catch (error) {
@@ -127,9 +191,20 @@ export class SimulatedTradingService {
     try {
       const timestamp = Date.now();
       const query = `timestamp=${timestamp}`;
-      const signature = createHmac('sha256', process.env.BINANCE_API_SECRET!)
+
+      // Check if API secret is defined
+      if (!process.env.BINANCE_API_SECRET) {
+        throw new Error('BINANCE_API_SECRET is not defined');
+      }
+
+      const signature = createHmac('sha256', process.env.BINANCE_API_SECRET)
         .update(query)
         .digest('hex');
+
+      // Check if API key is defined
+      if (!process.env.BINANCE_API_KEY) {
+        throw new Error('BINANCE_API_KEY is not defined');
+      }
 
       const response = await axios.get<BinanceAccountResponse>(
         `https://testnet.binance.vision/api/v3/account?${query}&signature=${signature}`,
@@ -140,8 +215,16 @@ export class SimulatedTradingService {
           timeout: 5000,
         },
       );
-      console.log('Using BINANCE_API_KEY:', process.env.BINANCE_API_KEY);
-      console.log('Using BINANCE_API_SECRET:', process.env.BINANCE_API_SECRET);
+
+      // Avoid logging sensitive information
+      console.log(
+        'Using BINANCE_API_KEY:',
+        process.env.BINANCE_API_KEY ? '[REDACTED]' : 'undefined',
+      );
+      console.log(
+        'Using BINANCE_API_SECRET:',
+        process.env.BINANCE_API_SECRET ? '[REDACTED]' : 'undefined',
+      );
 
       return response.data.balances;
     } catch (err) {
@@ -153,7 +236,7 @@ export class SimulatedTradingService {
     }
   }
 
-  async getFuturesTradeHistory(symbol: string) {
+  async getFuturesTradeHistory(symbol: string): Promise<any[]> {
     try {
       const timestamp = Date.now();
 
@@ -162,9 +245,20 @@ export class SimulatedTradingService {
 
       // Create the query string with correct parameters
       const query = `symbol=${formattedSymbol}&limit=50&timestamp=${timestamp}`;
-      const signature = createHmac('sha256', process.env.BINANCE_API_SECRET!)
+
+      // Check if API secret is defined
+      if (!process.env.BINANCE_API_SECRET) {
+        throw new Error('BINANCE_API_SECRET is not defined');
+      }
+
+      const signature = createHmac('sha256', process.env.BINANCE_API_SECRET)
         .update(query)
         .digest('hex');
+
+      // Check if API key is defined
+      if (!process.env.BINANCE_API_KEY) {
+        throw new Error('BINANCE_API_KEY is not defined');
+      }
 
       // Updated URL with explicit HTTPS
       const url = `https://testnet.binance.vision/api/v3/myTrades?${query}&signature=${signature}`;
@@ -176,7 +270,7 @@ export class SimulatedTradingService {
         timeout: 5000,
       });
 
-      return response.data; // ← Array of trades
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
       const axiosError = error as Error & AxiosErrorResponse;
       const responseData = axiosError.response?.data;

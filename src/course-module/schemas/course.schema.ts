@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document, Types } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 export type CourseDocument = Course & Document;
 
@@ -17,8 +17,8 @@ export class Course {
   @Prop({ type: [String] })
   videoUrls: string[];
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
-  createdBy: Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
+  createdBy: mongoose.Schema.Types.ObjectId;
 
   @Prop({ type: Boolean, default: false })
   isPublished: boolean;

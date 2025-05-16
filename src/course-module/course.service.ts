@@ -38,8 +38,12 @@ export class CourseService {
     return course;
   }
 
-  async createCourse(dto: CreateCourseDto) {
-    return this.courseModel.create(dto);
+  async createCourse(dto: CreateCourseDto, createdBy: string) {
+    const course = new this.courseModel({
+      ...dto,
+      createdBy, // set here
+    });
+    return course.save();
   }
 
   async updateCourse(id: string, dto: CreateCourseDto) {
