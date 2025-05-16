@@ -11,6 +11,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDetails, UserDocument } from './entities/user.entity';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { WalletService } from '@/wallet/wallet.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
     private jwtService: JwtService,
+    private walletService: WalletService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -38,6 +40,8 @@ export class AuthService {
     });
 
     await newUser.save();
+
+    await this.walletService.createWallet(newUser._id as unknown as string);
 
     const token = this.generateToken(newUser);
 
