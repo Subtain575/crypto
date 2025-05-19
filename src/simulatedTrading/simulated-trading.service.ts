@@ -47,9 +47,10 @@ export class SimulatedTradingService {
     process.env.BINANCE_BASE_URL || 'https://api.binance.com';
 
   constructor(
-    @InjectModel(SimulatedTrade.name) private tradeModel: Model<SimulatedTrade>,
+    @InjectModel(SimulatedTrade.name)
+    private readonly tradeModel: Model<SimulatedTrade>,
     @InjectModel(SimulatedPortfolio.name)
-    private portfolioModel: Model<SimulatedPortfolio>,
+    private readonly portfolioModel: Model<SimulatedPortfolio>,
   ) {}
 
   async getRealMarketPrice(symbol: string): Promise<number> {
@@ -187,6 +188,13 @@ export class SimulatedTradingService {
     }
   }
 
+  async getUserTrades(userId: string): Promise<SimulatedTrade[]> {
+    return this.tradeModel
+      .find({ user: userId })
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
   async getRealPortfolio(): Promise<BinanceBalance[]> {
     try {
       const timestamp = Date.now();
@@ -234,7 +242,7 @@ export class SimulatedTradingService {
       );
       throw new Error('Failed to fetch portfolio from Binance');
     }
-  }
+  } // Binance se assets ki list aur unka free & locked balance leke user ko return karti hai.
 
   async getFuturesTradeHistory(symbol: string): Promise<any[]> {
     try {

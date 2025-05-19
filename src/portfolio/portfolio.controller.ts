@@ -8,7 +8,7 @@ import { SellDto } from './dto/sell.dto';
 
 interface RequestWithUser extends Request {
   user: {
-    _id: string;
+    sub: string;
   };
 }
 
@@ -23,7 +23,7 @@ export class PortfolioController {
   @ApiBody({ type: BuyDto })
   buy(@Body() dto: BuyDto, @Req() req: RequestWithUser) {
     return this.portfolioService.buyAsset(
-      req.user._id,
+      req.user.sub,
       dto.asset,
       dto.quantity,
       dto.price,
@@ -35,7 +35,7 @@ export class PortfolioController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get user portfolio' })
   getPortfolio(@Req() req: RequestWithUser) {
-    return this.portfolioService.getPortfolio(req.user._id);
+    return this.portfolioService.getPortfolio(req.user.sub);
   }
 
   @Post('sell')
@@ -45,7 +45,7 @@ export class PortfolioController {
   @ApiBody({ type: SellDto })
   sell(@Body() dto: SellDto, @Req() req: RequestWithUser) {
     return this.portfolioService.sellAsset(
-      req.user._id,
+      req.user.sub,
       dto.asset,
       dto.quantity,
       dto.price,

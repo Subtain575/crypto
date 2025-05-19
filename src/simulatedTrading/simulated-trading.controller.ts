@@ -36,7 +36,7 @@ interface OrderResult {
 
 export interface RequestWithUser extends Request {
   user: {
-    _id: string;
+    sub: string;
     email?: string;
     // Add other user fields as needed
   };
@@ -84,7 +84,7 @@ export class SimulatedTradingController {
     @Body() dto: ExecuteTradeDto,
     @Req() req: RequestWithUser,
   ): Promise<OrderResult> {
-    return this.service.buyOnBinance(req.user._id, dto.symbol, dto.quantity);
+    return this.service.buyOnBinance(req.user.sub, dto.symbol, dto.quantity);
   }
 
   @Post('sell')
@@ -95,7 +95,18 @@ export class SimulatedTradingController {
     @Body() dto: ExecuteTradeDto,
     @Req() req: RequestWithUser,
   ): Promise<OrderResult> {
-    return this.service.sellOnBinance(req.user._id, dto.symbol, dto.quantity);
+    return this.service.sellOnBinance(req.user.sub, dto.symbol, dto.quantity);
+  }
+
+  @Get('user-trades')
+  async getMyTrades(@Req() req: RequestWithUser) {
+    const userId = req.user.sub;
+    const trades = await this.service.getUserTrades(userId);
+    return {
+      success: true,
+      count: trades.length,
+      data: trades,
+    };
   }
 
   @Get('portfolio')

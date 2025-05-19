@@ -15,5 +15,6 @@ export class SimulatedTrade extends Document {
   @Prop({ default: Date.now })
   timestamp: Date;
 }
+
 export const SimulatedTradeSchema =
   SchemaFactory.createForClass(SimulatedTrade);

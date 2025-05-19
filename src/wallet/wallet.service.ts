@@ -88,7 +88,7 @@ export class WalletService {
   }
 
   async getWallet(userId: string) {
-    return this.walletModel.findOne({ user: userId }).populate('transactions');
+    return this.walletModel.findOne({ user: userId });
   }
 
   async withdraw(userId: string, amount: number) {

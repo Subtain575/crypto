@@ -7,5 +7,6 @@ export class SimulatedPortfolio extends Document {
   @Prop({ type: Object, default: {} }) coins: Record<string, number>;
   @Prop({ default: 10000 }) usdtBalance: number; // default balance for simulation
 }
+
 export const SimulatedPortfolioSchema =
   SchemaFactory.createForClass(SimulatedPortfolio);

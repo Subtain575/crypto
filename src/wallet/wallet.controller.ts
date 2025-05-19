@@ -17,7 +17,6 @@ import { AdminAdjustDto } from './dto/admin-adjust.dto';
 
 interface RequestWithUser extends Request {
   user: {
-    _id: string;
     sub: string;
   };
 }
@@ -45,7 +44,7 @@ export class WalletController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   getWallet(@Req() req: RequestWithUser) {
-    return this.walletService.getWallet(req.user._id);
+    return this.walletService.getWallet(req.user.sub);
   }
 
   @Post('withdraw')
@@ -54,7 +53,7 @@ export class WalletController {
   @ApiOperation({ summary: 'Withdraw from wallet (mock)' })
   @ApiBody({ type: WithdrawDto })
   withdraw(@Body() dto: WithdrawDto, @Req() req: RequestWithUser) {
-    return this.walletService.withdraw(req.user._id, dto.amount);
+    return this.walletService.withdraw(req.user.sub, dto.amount);
   }
 
   @Post('admin-adjust')

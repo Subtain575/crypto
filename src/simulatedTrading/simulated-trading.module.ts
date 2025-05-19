@@ -20,5 +20,6 @@ import { SimulatedTradingController } from './simulated-trading.controller';
   ],
   controllers: [SimulatedTradingController],
   providers: [SimulatedTradingService],
+  exports: [SimulatedTradingService],
 })
 export class SimulatedTradingModule {}
