@@ -10,6 +10,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { WalletModule } from '../wallet/wallet.module';
+import { ReferralModule } from '../referralSystem/referral.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { WalletModule } from '../wallet/wallet.module';
       }),
     }),
     WalletModule,
+    ReferralModule,
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],

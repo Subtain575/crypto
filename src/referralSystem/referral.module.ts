@@ -10,5 +10,6 @@ import { User, UserSchema } from '../auth/entities/user.entity';
   ],
   controllers: [ReferralController],
   providers: [ReferralService],
+  exports: [ReferralService],
 })
 export class ReferralModule {}

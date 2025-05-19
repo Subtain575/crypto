@@ -90,8 +90,7 @@ export class AuthController {
 
   @Delete('users/:id')
   @ApiBearerAuth('JWT-auth')
-  @Roles(UserRole.Admin)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   async delete(
     @Param('id') id: string,
     @Req() req: Request & { user: UserDetails },

@@ -29,6 +29,8 @@ export class ReferralService {
   async registerWithReferral(createUserDto: CreateUserWithReferralDto) {
     const { firstName, lastName, email, password, referralCode } =
       createUserDto;
+
+    // Check if referral code is provided and valid
     let referredByUser: UserDocument | null = null;
     if (referralCode) {
       referredByUser = await this.userModel.findOne({ referralCode });
@@ -36,17 +38,24 @@ export class ReferralService {
         throw new NotFoundException('Invalid referral code');
       }
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Automatically generate referral code here for new user (Change)
+    const newReferralCode = this.generateId();
+
+    // Create user with generated referral code and optional referredBy
     const user = await this.userModel.create({
       firstName,
       lastName,
       email,
       password: hashedPassword,
-      referralCode: this.generateId(),
+      referralCode: newReferralCode, // Changed: auto generated here
       referredBy: referredByUser?._id || null,
       rewardPoints: 0,
     });
 
+    // Add reward points if referred by someone (no change)
     if (referredByUser) {
       await Promise.all([
         this.userModel.findByIdAndUpdate(referredByUser._id, {

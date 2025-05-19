@@ -21,16 +21,13 @@ export class User {
   @Exclude({ toPlainOnly: true })
   password: string;
 
-  @Prop({ default: false })
-  emailVerified: boolean;
-
   @Prop()
   lastLogin?: Date;
 
   @Prop({ default: true })
   isActive: boolean;
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: Types.ObjectId, ref: 'User', default: null })
   referredBy?: Types.ObjectId;
 
   @Prop({ unique: true })

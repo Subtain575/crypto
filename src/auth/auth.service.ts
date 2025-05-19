@@ -1,7 +1,6 @@
 import {
   Injectable,
   UnauthorizedException,
-  ConflictException,
   NotFoundException,
 } from '@nestjs/common';
 import { LoginDto, RegisterDto } from './dtos/register.dto';
@@ -12,6 +11,7 @@ import { Model } from 'mongoose';
 import { User, UserDetails, UserDocument } from './entities/user.entity';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { WalletService } from '../wallet/wallet.service';
+import { ReferralService } from '../referralSystem/referral.service';
 
 @Injectable()
 export class AuthService {
@@ -20,40 +20,26 @@ export class AuthService {
     private userModel: Model<UserDocument>,
     private jwtService: JwtService,
     private walletService: WalletService,
+    private referralService: ReferralService,
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { email, password, firstName, lastName } = registerDto;
+    const user = await this.referralService.registerWithReferral(registerDto);
+    await this.walletService.createWallet(user._id as unknown as string);
 
-    const existingUser = await this.userModel.findOne({ email });
-    if (existingUser) {
-      throw new ConflictException('User already exists');
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new this.userModel({
-      email,
-      password: hashedPassword,
-      firstName,
-      lastName,
-      role: 'user',
-    });
-
-    await newUser.save();
-
-    await this.walletService.createWallet(newUser._id as unknown as string);
-
-    const token = this.generateToken(newUser);
+    // JWT token generate karo
+    const token = this.generateToken(user);
 
     return {
       message: 'User registered successfully',
       token,
       user: {
-        id: newUser._id,
-        email: newUser.email,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        role: newUser.role,
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        referralCode: user.referralCode, // client ko referral code bhi bhej do taake wo share kar sake
       },
     };
   }
@@ -137,8 +123,11 @@ export class AuthService {
   }
 
   async delete(id: string, currentUser: UserDetails): Promise<UserDocument> {
-    if (currentUser.role !== 'admin') {
-      throw new UnauthorizedException('Only admin can delete users');
+    const isAdmin = currentUser.role === 'admin';
+    const isSelf = currentUser.sub === id;
+
+    if (!isAdmin && !isSelf) {
+      throw new UnauthorizedException('You can only delete your own account');
     }
 
     const deletedUser = await this.userModel

@@ -28,7 +28,6 @@ export class RegisterDto {
   @MinLength(6)
   password: string;
 
-  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   referredBy?: string;
