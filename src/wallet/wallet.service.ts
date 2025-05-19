@@ -38,6 +38,10 @@ export class WalletService {
   }
 
   async deposit(userId: string, amount: number) {
+    if (!userId) {
+      throw new BadRequestException('User ID is required');
+    }
+
     if (amount <= 0) {
       throw new BadRequestException('Deposit amount must be greater than 0');
     }
@@ -59,6 +63,7 @@ export class WalletService {
         enabled: true,
         allow_redirects: 'never', // ✅ Prevent redirect-based methods
       },
+
       metadata: {
         userId: userId.toString(),
         purpose: 'wallet_deposit',

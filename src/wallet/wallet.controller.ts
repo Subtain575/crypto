@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Req,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { DepositDto } from './dto/deposit.dto';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -9,8 +17,8 @@ import { AdminAdjustDto } from './dto/admin-adjust.dto';
 
 interface RequestWithUser extends Request {
   user: {
-    id: string;
     _id: string;
+    sub: string;
   };
 }
 
@@ -25,8 +33,11 @@ export class WalletController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   deposit(@Body() depositDto: DepositDto, @Req() req: RequestWithUser) {
-    const userId = req.user._id;
-    return this.walletService.deposit(userId, depositDto.amount);
+    const userId = req.user?.sub;
+    const amount = depositDto.amount;
+    if (!userId) throw new BadRequestException('User not authenticated');
+
+    return this.walletService.deposit(userId, amount);
   }
 
   @Get()
