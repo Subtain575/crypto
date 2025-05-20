@@ -9,24 +9,42 @@ import {
   Query,
   Delete,
   NotFoundException,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketStatus } from './enum/ticket-status.enum';
-import { ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { UserRole } from '../../auth/enums/user-role.enum';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: {
+    userId: string;
+    role: UserRole;
+    sub: string;
+  };
+}
 
 @Controller('tickets')
 export class TicketController {
   constructor(private readonly ticketService: TicketService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiResponse({
     status: 200,
     description: 'Ticket fetched successfully',
   })
-  async create(@Body() dto: CreateTicketDto) {
-    const newTicket = await this.ticketService.create(dto);
+  async create(@Body() dto: CreateTicketDto, @Req() req: RequestWithUser) {
+    const user = req.user.sub;
+    const newTicket = await this.ticketService.create(dto, user);
     if (!newTicket) {
       throw new NotFoundException('Ticket not created');
     }
@@ -34,6 +52,9 @@ export class TicketController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth('JWT-auth')
+  @Roles(UserRole.ADMIN)
   @ApiQuery({ name: 'status', enum: TicketStatus, required: false })
   @ApiResponse({
     status: 200,
@@ -44,13 +65,17 @@ export class TicketController {
     return tickets;
   }
 
-  @Get('user/:userId')
+  @Get('user')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth('JWT-auth')
+  @Roles(UserRole.USER)
   @ApiResponse({
     status: 200,
     description: 'User tickets fetched successfully',
   })
-  async findByUser(@Param('userId') userId: string) {
-    const tickets = await this.ticketService.findByUser(userId);
+  async findByUser(@Req() req: RequestWithUser) {
+    const user = req.user.sub;
+    const tickets = await this.ticketService.findByUser(user);
     if (!tickets) {
       throw new NotFoundException('User tickets not found');
     }
@@ -58,32 +83,61 @@ export class TicketController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiResponse({
     status: 200,
     description: 'Ticket fetched successfully',
   })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string, @Req() req: RequestWithUser) {
+    const userId = req.user.sub;
+    const userRole = req.user.role;
     const ticket = await this.ticketService.findOne(id);
+
     if (!ticket) {
       throw new NotFoundException('Ticket not found');
     }
+
+    // 👇 Check if user is not admin and not owner
+    if (userRole !== UserRole.ADMIN && ticket.userId !== userId) {
+      throw new NotFoundException('You are not allowed to access this ticket');
+    }
+
     return ticket;
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiResponse({
     status: 200,
     description: 'Ticket updated successfully',
   })
-  async update(@Param('id') id: string, @Body() dto: CreateTicketDto) {
-    const updated = await this.ticketService.update(id, dto);
-    if (!updated) {
+  async update(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+    @Body() dto: CreateTicketDto,
+  ) {
+    const userId = req.user.sub;
+    const userRole = req.user.role;
+    const ticket = await this.ticketService.findOne(id);
+
+    if (!ticket) {
       throw new NotFoundException('Ticket not found');
     }
-    return updated;
+
+    // 👇 Check if user is not admin and not the owner
+    if (userRole !== UserRole.ADMIN && ticket.userId !== userId) {
+      throw new NotFoundException('You are not allowed to update this ticket');
+    }
+
+    return this.ticketService.update(id, dto);
   }
 
   @Patch(':id/reply')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth('JWT-auth')
+  @Roles(UserRole.ADMIN)
   @ApiResponse({
     status: 200,
     description: 'Reply added successfully',
@@ -97,15 +151,26 @@ export class TicketController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiResponse({
     status: 200,
     description: 'Ticket deleted successfully',
   })
-  async remove(@Param('id') id: string) {
-    const deleted = await this.ticketService.remove(id);
-    if (!deleted) {
+  async remove(@Param('id') id: string, @Req() req: RequestWithUser) {
+    const userId = req.user.sub;
+    const userRole = req.user.role;
+    const ticket = await this.ticketService.findOne(id);
+
+    if (!ticket) {
       throw new NotFoundException('Ticket not found');
     }
-    return deleted;
+
+    // 👇 Only allow if user is ADMIN or ticket owner
+    if (userRole !== UserRole.ADMIN && ticket.userId !== userId) {
+      throw new NotFoundException('You are not allowed to delete this ticket');
+    }
+
+    return this.ticketService.remove(id);
   }
 }

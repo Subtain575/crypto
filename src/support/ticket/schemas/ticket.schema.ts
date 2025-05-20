@@ -4,7 +4,7 @@ import { TicketStatus } from '../enum/ticket-status.enum';
 
 @Schema({ timestamps: true })
 export class Ticket extends Document {
-  @Prop({ required: true })
+  @Prop()
   userId: string;
 
   @Prop({ required: true })

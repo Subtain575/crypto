@@ -3,14 +3,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty } from 'class-validator';
 
 export class CreateTicketDto {
-  @ApiProperty({
-    example: 'userId123',
-    description: 'User ID of the ticket creator',
-  })
-  @IsString()
-  @IsNotEmpty()
-  userId: string;
-
   @ApiProperty({ example: 'Login Issue', description: 'Subject of the ticket' })
   @IsString()
   @IsNotEmpty()

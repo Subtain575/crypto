@@ -9,10 +9,17 @@ import { TicketStatus } from './enum/ticket-status.enum';
 
 @Injectable()
 export class TicketService {
-  constructor(@InjectModel(Ticket.name) private ticketModel: Model<Ticket>) {}
+  constructor(
+    @InjectModel(Ticket.name)
+    private ticketModel: Model<Ticket>,
+  ) {}
 
-  create(createTicketDto: CreateTicketDto) {
-    return this.ticketModel.create(createTicketDto);
+  async create(createTicketDto: CreateTicketDto, userId: string) {
+    const ticketData = {
+      ...createTicketDto,
+      userId,
+    };
+    return this.ticketModel.create(ticketData);
   }
 
   async findAll(status?: TicketStatus) {
