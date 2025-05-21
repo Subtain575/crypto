@@ -16,7 +16,12 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
 import { UserRole } from './roles.enum';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { UserDetails } from './entities/user.entity';
 import { Request } from 'express';
 
@@ -45,6 +50,13 @@ export class AuthController {
   }
 
   @Post('google')
+  @ApiOperation({ summary: 'Google Login' })
+  @ApiBody({ schema: { example: { token: 'GOOGLE_ID_TOKEN' } } })
+  @ApiResponse({
+    status: 200,
+    description: 'Successful login',
+  })
+  @ApiResponse({ status: 401, description: 'Invalid Google token' })
   async googleLogin(@Body('token') token: string) {
     return this.authService.validateGoogleToken(token);
   }
