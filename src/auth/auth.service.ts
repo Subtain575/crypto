@@ -25,7 +25,7 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const user = await this.referralService.registerWithReferral(registerDto);
-    await this.walletService.createWallet(user._id as unknown as string);
+    await this.walletService.createWallet(user._id.toString());
 
     // JWT token generate karo
     const token = this.generateToken(user);
@@ -67,6 +67,33 @@ export class AuthService {
         lastName: user.lastName,
         role: user.role,
       },
+    };
+  }
+
+  async googleLogin(googleUser: {
+    email: string;
+    firstName: string;
+    lastName: string;
+  }) {
+    let user = await this.userModel.findOne({ email: googleUser.email });
+
+    if (!user) {
+      user = await this.referralService.registerWithReferral({
+        email: googleUser.email,
+        firstName: googleUser.firstName,
+        lastName: googleUser.lastName,
+        provider: 'google',
+        isGoogleSignup: true,
+        password: '',
+        referralCode: '',
+      });
+      await this.walletService.createWallet(user._id.toString());
+    }
+
+    return {
+      message: 'Google login success',
+      user,
+      token: this.jwtService.sign({ sub: user._id }),
     };
   }
 

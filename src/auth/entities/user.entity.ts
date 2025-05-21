@@ -8,10 +8,10 @@ export type UserDocument = User & Document;
 export class User {
   _id: Types.ObjectId;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   firstName: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   lastName: string;
 
   @Prop({ unique: true })
@@ -41,6 +41,12 @@ export class User {
 
   @Prop({ type: [{ permission: String }], default: [] })
   permissions: { permission: string }[];
+
+  @Prop({ default: false })
+  isGoogleSignup: boolean;
+
+  @Prop({ default: 'local' }) // 'local' | 'google' | 'facebook' etc
+  provider: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

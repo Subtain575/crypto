@@ -8,9 +8,6 @@ export class Reply extends Document {
   ticketId: string;
 
   @Prop({ required: true })
-  userId: string;
-
-  @Prop({ required: true })
   role: string; // 'user' or 'admin'
 
   @Prop({ required: true })

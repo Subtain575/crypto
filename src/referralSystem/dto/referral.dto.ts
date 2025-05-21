@@ -34,12 +34,21 @@ export class CreateUserWithReferralDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(6)
-  password: string;
+  password?: string;
 
   @ApiPropertyOptional({ example: 'ABCD1234' })
   @IsOptional()
   @IsString()
   referralCode?: string;
+
+  @ApiPropertyOptional({ default: 'local' })
+  @IsOptional()
+  @IsString()
+  provider?: 'google' | 'local';
+
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  isGoogleSignup?: boolean;
 }
 export class LoginDto {
   @ApiProperty({ example: 'john@example.com' })

@@ -39,7 +39,9 @@ export class ReferralService {
       }
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = password
+      ? await bcrypt.hash(password, 10)
+      : undefined;
 
     // Automatically generate referral code here for new user (Change)
     const newReferralCode = this.generateId();

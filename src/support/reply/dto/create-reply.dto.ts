@@ -13,14 +13,6 @@ export class CreateReplyDto {
   ticketId: string;
 
   @ApiProperty({
-    example: 'userId123',
-    description: 'ID of the user/admin replying',
-  })
-  @IsString()
-  @IsNotEmpty()
-  userId: string;
-
-  @ApiProperty({
     example: Role.USER,
     enum: Role,
     description: 'Role of the person replying',

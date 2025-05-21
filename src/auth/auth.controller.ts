@@ -18,6 +18,14 @@ import { Roles } from './decorators/roles.decorator';
 import { UserRole } from './roles.enum';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { UserDetails } from './entities/user.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
+
+interface GoogleUser {
+  email: string;
+  firstName: string;
+  lastName: string;
+}
 
 @Controller('auth')
 export class AuthController {
@@ -43,20 +51,14 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Post('admin')
-  @ApiBearerAuth('JWT-auth')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.Admin)
-  protectedRoute() {
-    return { message: 'This is an admin protected route' };
-  }
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {}
 
-  @Post('user')
-  @ApiBearerAuth('JWT-auth')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.User)
-  protectedUserRoute() {
-    return { message: 'This is an user protected route' };
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req: Request & { user: GoogleUser }) {
+    return this.authService.googleLogin(req.user);
   }
 
   @Get('users')
