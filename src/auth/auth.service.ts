@@ -12,6 +12,9 @@ import { User, UserDetails, UserDocument } from './entities/user.entity';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { WalletService } from '../wallet/wallet.service';
 import { ReferralService } from '../referralSystem/referral.service';
+import { OAuth2Client } from 'google-auth-library';
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 @Injectable()
 export class AuthService {
@@ -70,30 +73,30 @@ export class AuthService {
     };
   }
 
-  async googleLogin(googleUser: {
-    email: string;
-    firstName: string;
-    lastName: string;
-  }) {
-    let user = await this.userModel.findOne({ email: googleUser.email });
+  async validateGoogleToken(token: string) {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: 'YOUR_GOOGLE_CLIENT_ID',
+    });
 
-    if (!user) {
-      user = await this.referralService.registerWithReferral({
-        email: googleUser.email,
-        firstName: googleUser.firstName,
-        lastName: googleUser.lastName,
-        provider: 'google',
-        isGoogleSignup: true,
-        password: '',
-        referralCode: '',
-      });
-      await this.walletService.createWallet(user._id.toString());
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      throw new UnauthorizedException('Invalid Google token');
     }
 
+    // You can create or find user in DB here
+    const user = {
+      email: payload.email,
+      firstName: payload.given_name,
+      lastName: payload.family_name,
+    };
+
+    const jwt = this.jwtService.sign({ sub: user.email, ...user });
+
     return {
-      message: 'Google login success',
+      jwt,
       user,
-      token: this.jwtService.sign({ sub: user._id }),
     };
   }
 

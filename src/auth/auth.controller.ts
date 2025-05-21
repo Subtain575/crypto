@@ -18,14 +18,7 @@ import { Roles } from './decorators/roles.decorator';
 import { UserRole } from './roles.enum';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { UserDetails } from './entities/user.entity';
-import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
-
-interface GoogleUser {
-  email: string;
-  firstName: string;
-  lastName: string;
-}
 
 @Controller('auth')
 export class AuthController {
@@ -51,14 +44,9 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Get('google')
-  @UseGuards(AuthGuard('google'))
-  async googleAuth() {}
-
-  @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req: Request & { user: GoogleUser }) {
-    return this.authService.googleLogin(req.user);
+  @Post('google')
+  async googleLogin(@Body('token') token: string) {
+    return this.authService.validateGoogleToken(token);
   }
 
   @Get('users')

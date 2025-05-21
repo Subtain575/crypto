@@ -11,7 +11,6 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { WalletModule } from '../wallet/wallet.module';
 import { ReferralModule } from '../referralSystem/referral.module';
-import { GoogleStrategy } from './google.strategy';
 
 @Module({
   imports: [
@@ -29,7 +28,7 @@ import { GoogleStrategy } from './google.strategy';
     WalletModule,
     ReferralModule,
   ],
-  providers: [AuthService, JwtStrategy, GoogleStrategy],
+  providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
   exports: [PassportModule, JwtModule],
 })
