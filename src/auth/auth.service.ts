@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { LoginDto, RegisterDto } from './dtos/register.dto';
+import { CreateUserWithReferralDto } from '../referralSystem/dto/referral.dto';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
@@ -15,6 +16,11 @@ import { ReferralService } from '../referralSystem/referral.service';
 import { OAuth2Client } from 'google-auth-library';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+interface CustomError extends Error {
+  status?: number;
+  code?: number;
+}
 
 @Injectable()
 export class AuthService {
@@ -73,30 +79,68 @@ export class AuthService {
     };
   }
 
-  async validateGoogleToken(token: string) {
+  async validateGoogleToken(googleToken: string) {
     const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: 'YOUR_GOOGLE_CLIENT_ID',
+      idToken: googleToken,
+      audience:
+        '1066483579363-71pe1b1scdv096u76td0fmm69fqk58pk.apps.googleusercontent.com',
     });
 
     const payload = ticket.getPayload();
+    console.log('Google Payload:', payload);
 
     if (!payload) {
       throw new UnauthorizedException('Invalid Google token');
     }
+    const email = payload.email;
 
-    // You can create or find user in DB here
-    const user = {
-      email: payload.email,
-      firstName: payload.given_name,
-      lastName: payload.family_name,
-    };
+    let user = await this.userModel.findOne({ email });
 
-    const jwt = this.jwtService.sign({ sub: user.email, ...user });
+    if (!user) {
+      if (!payload.email) {
+        throw new UnauthorizedException('Email not provided by Google');
+      }
+      const registerDto: CreateUserWithReferralDto = {
+        email: payload.email,
+        firstName: payload.given_name || '',
+        lastName: payload.family_name || '',
+        password: 'google-auth',
+        referralCode: undefined,
+        provider: 'google',
+        isGoogleSignup: true,
+      };
+
+      try {
+        user = await this.referralService.registerWithReferral(registerDto);
+        await this.walletService.createWallet(user._id.toString());
+      } catch (err: unknown) {
+        const error = err as CustomError;
+        if (
+          error.status === 409 ||
+          error.code === 11000 ||
+          error.message?.includes('already exists')
+        ) {
+          user = await this.userModel.findOne({ email });
+        } else {
+          throw err;
+        }
+      }
+    }
+    if (!user) {
+      throw new UnauthorizedException('User could not be found or created');
+    }
+    const token = this.generateToken(user);
 
     return {
-      jwt,
-      user,
+      message: user.isGoogleSignup
+        ? 'User logged in with Google'
+        : 'User registered via Google',
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+      },
     };
   }
 
