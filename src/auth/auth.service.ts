@@ -75,6 +75,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        referralCode: user.referralCode,
       },
     };
   }
@@ -130,16 +131,16 @@ export class AuthService {
       throw new UnauthorizedException('User could not be found or created');
     }
     const token = this.generateToken(user);
-
     return {
-      message: user.isGoogleSignup
-        ? 'User logged in with Google'
-        : 'User registered via Google',
+      message: 'Sign in successfully via Google',
       token,
       user: {
         id: user._id,
         email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
+        referralCode: user.referralCode,
       },
     };
   }
