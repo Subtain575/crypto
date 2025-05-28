@@ -73,7 +73,23 @@ export class PortfolioService {
   }
 
   async getPortfolio(userId: string) {
-    return this.portfolioModel.find({ user: userId });
+    const portfolio = await this.portfolioModel
+      .find({ user: userId })
+      .sort({ createdAt: -1 });
+
+    const wallet = await this.walletModel
+      .findOne({ user: userId })
+      .populate('transactions'); // Populate transaction history
+
+    if (!wallet) {
+      throw new BadRequestException('Wallet not found');
+    }
+
+    return {
+      portfolio,
+      transactions: wallet.transactions,
+      balance: wallet.balance,
+    };
   }
 
   async sellAsset(
