@@ -84,7 +84,7 @@ export class AuthService {
     const ticket = await client.verifyIdToken({
       idToken: googleToken,
       audience:
-        '1066483579363-71pe1b1scdv096u76td0fmm69fqk58pk.apps.googleusercontent.com',
+        '733680592930-nt05q3hf2i9boq7hr71ao7d8r7c2i6av.apps.googleusercontent.com',
     });
 
     const payload = ticket.getPayload();
