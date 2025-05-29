@@ -10,7 +10,17 @@ export class ExecuteTradeDto {
   @IsString()
   symbol: string;
 
-  @ApiProperty({ example: 0.5, description: 'Quantity of the asset to trade' })
+  @ApiProperty({
+    example: 0.5,
+    description: 'Quantity of the asset to trade',
+  })
   @IsNumber()
   quantity: number;
+
+  @ApiProperty({
+    example: 27000,
+    description: 'Simulated price at which trade is executed',
+  })
+  @IsNumber()
+  price: number;
 }

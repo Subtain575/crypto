@@ -61,15 +61,15 @@ export class ReferralService {
     if (referredByUser) {
       await Promise.all([
         this.userModel.findByIdAndUpdate(referredByUser._id, {
-          $inc: { rewardPoints: 10 },
+          $inc: { rewardPoints: 100 },
         }),
         this.userModel.findByIdAndUpdate(user._id, {
-          $inc: { rewardPoints: 5 },
+          $inc: { rewardPoints: 100 },
         }),
       ]);
     }
-
-    return user;
+    const updatedUser = await this.userModel.findById(user._id);
+    return updatedUser;
   }
   async login(email: string, plainPassword: string) {
     const user = await this.userModel.findOne({ email });

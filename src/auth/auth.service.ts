@@ -34,6 +34,11 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const user = await this.referralService.registerWithReferral(registerDto);
+
+    if (!user) {
+      throw new UnauthorizedException('Failed to register user');
+    }
+
     await this.walletService.createWallet(user._id.toString());
 
     // JWT token generate karo
@@ -113,6 +118,11 @@ export class AuthService {
 
       try {
         user = await this.referralService.registerWithReferral(registerDto);
+        if (!user) {
+          throw new UnauthorizedException(
+            'Failed to register user with Google',
+          );
+        }
         await this.walletService.createWallet(user._id.toString());
       } catch (err: unknown) {
         const error = err as CustomError;
