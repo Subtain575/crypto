@@ -8,14 +8,21 @@ import {
   HttpStatus,
   BadRequestException,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ReferralService } from './referral.service';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import {
   CreateUserWithReferralDto,
   ApplyReferralDto,
 } from './dto/referral.dto';
 import { RequestWithUser } from '../simulatedTrading/simulated-trading.controller';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Referral')
 @Controller('referral')
@@ -42,6 +49,8 @@ export class ReferralController {
   }
 
   @Post('apply')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Apply referral code' })
   @ApiResponse({ status: 200, description: 'Referral applied successfully' })
   async applyReferralCode(
