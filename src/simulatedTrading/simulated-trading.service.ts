@@ -28,7 +28,14 @@ export class SimulatedTradingService {
       createdAt: new Date(),
     });
 
-    return { success: true, message: 'Simulated buy saved', type: 'BUY' };
+    return {
+      data: {
+        symbol,
+        quantity,
+        price,
+        type: 'BUY',
+      },
+    };
   }
 
   async sellSimulated(
@@ -46,13 +53,49 @@ export class SimulatedTradingService {
       createdAt: new Date(),
     });
 
-    return { success: true, message: 'Simulated sell saved', type: 'SELL' };
+    return {
+      data: {
+        symbol,
+        quantity,
+        price,
+        type: 'SELL',
+      },
+    };
   }
 
-  async getUserTrades(userId: string) {
-    return this.tradeModel
-      .find({ user: userId })
-      .sort({ createdAt: -1 })
-      .exec();
+  async getUserCurrentHoldings(userId: string) {
+    return this.tradeModel.aggregate([
+      { $match: { user: userId } },
+      {
+        $group: {
+          _id: '$symbol',
+          totalBuy: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'BUY'] }, '$quantity', 0],
+            },
+          },
+          totalSell: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'SELL'] }, '$quantity', 0],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          symbol: '$_id',
+          holding: { $subtract: ['$totalBuy', '$totalSell'] },
+        },
+      },
+      {
+        $match: {
+          holding: { $gt: 0 },
+        },
+      },
+      {
+        $sort: { holding: -1 },
+      },
+    ]);
   }
 }

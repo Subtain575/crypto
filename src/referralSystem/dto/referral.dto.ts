@@ -50,6 +50,7 @@ export class CreateUserWithReferralDto {
   @IsOptional()
   isGoogleSignup?: boolean;
 }
+
 export class LoginDto {
   @ApiProperty({ example: 'john@example.com' })
   @IsEmail()
@@ -59,4 +60,11 @@ export class LoginDto {
   @IsString()
   @MinLength(6)
   password: string;
+}
+
+export class ApplyReferralDto {
+  @ApiProperty({ example: 'ABCD1234' })
+  @IsNotEmpty()
+  @IsString()
+  referralCode: string;
 }
