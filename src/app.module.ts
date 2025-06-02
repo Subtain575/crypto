@@ -18,6 +18,7 @@ import { WalletModule } from './wallet/wallet.module';
 import { ReferralModule } from './referralSystem/referral.module';
 import { SimulatedTradingModule } from './simulatedTrading/simulated-trading.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { EmailModule } from './auth/email.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     ReferralModule,
     SimulatedTradingModule,
     AnalyticsModule,
+    EmailModule,
   ],
   controllers: [],
   providers: [],

@@ -8,6 +8,7 @@ import {
   UseGuards,
   Req,
   Put,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dtos/register.dto';
@@ -24,6 +25,8 @@ import {
 } from '@nestjs/swagger';
 import { UserDetails } from './entities/user.entity';
 import { Request } from 'express';
+import { VerifyEmailDto } from './dtos/verify-email.dto';
+import { ResendOtpDto } from './dtos/resend-otp.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -59,6 +62,23 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid Google token' })
   async googleLogin(@Body('token') token: string) {
     return this.authService.validateGoogleToken(token);
+  }
+
+  @Post('verify-email')
+  @ApiOperation({ summary: 'Verify email with OTP' })
+  async verifyEmail(@Body() body: VerifyEmailDto) {
+    const isValid = await this.authService.verifyEmailOtp(body.email, body.otp);
+
+    if (!isValid) {
+      throw new BadRequestException('Invalid or expired OTP');
+    }
+
+    return { message: 'OTP verified successfully' };
+  }
+  @Post('resend-otp')
+  @ApiOperation({ summary: 'Resend OTP for email verification' })
+  async resendOtp(@Body() body: ResendOtpDto) {
+    return this.authService.resendOtp(body.email);
   }
 
   @Get('users')

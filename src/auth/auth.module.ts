@@ -11,7 +11,10 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { WalletModule } from '../wallet/wallet.module';
 import { ReferralModule } from '../referralSystem/referral.module';
-
+import { OtpService } from './otp.service';
+import { Otp } from './entities/otp.schema';
+import { OtpSchema } from './entities/otp.schema';
+import { EmailModule } from './email.module';
 @Module({
   imports: [
     ConfigModule,
@@ -25,11 +28,13 @@ import { ReferralModule } from '../referralSystem/referral.module';
         signOptions: { expiresIn: '1h' },
       }),
     }),
+    MongooseModule.forFeature([{ name: Otp.name, schema: OtpSchema }]),
     WalletModule,
     ReferralModule,
+    EmailModule,
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, OtpService],
   controllers: [AuthController],
-  exports: [PassportModule, JwtModule],
+  exports: [PassportModule, JwtModule, OtpService],
 })
 export class AuthModule {}

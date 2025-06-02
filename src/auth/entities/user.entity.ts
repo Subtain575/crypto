@@ -36,6 +36,9 @@ export class User {
   @Prop({ default: 0 })
   rewardPoints: number;
 
+  @Prop({ default: false })
+  isEmailVerified: boolean;
+
   @Prop({ default: 'user' })
   role: string;
 

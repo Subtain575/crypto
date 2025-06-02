@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { LoginDto, RegisterDto } from './dtos/register.dto';
 import { CreateUserWithReferralDto } from '../referralSystem/dto/referral.dto';
@@ -14,7 +15,9 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { WalletService } from '../wallet/wallet.service';
 import { ReferralService } from '../referralSystem/referral.service';
 import { OAuth2Client } from 'google-auth-library';
-
+import { OtpService } from './otp.service';
+import { EmailService } from './email.service';
+import { Otp, OtpDocument } from './entities/otp.schema';
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 interface CustomError extends Error {
@@ -30,6 +33,10 @@ export class AuthService {
     private jwtService: JwtService,
     private walletService: WalletService,
     private referralService: ReferralService,
+    private otpService: OtpService,
+    private readonly emailService: EmailService,
+    @InjectModel(Otp.name)
+    private otpModel: Model<OtpDocument>,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -41,11 +48,13 @@ export class AuthService {
 
     await this.walletService.createWallet(user._id.toString());
 
+    await this.otpService.generateOtp(user.email);
+
     // JWT token generate karo
     const token = this.generateToken(user);
 
     return {
-      message: 'User registered successfully',
+      message: 'User registered successfully. OTP sent to email.',
       token,
       user: {
         id: user._id,
@@ -55,6 +64,49 @@ export class AuthService {
         role: user.role,
         referralCode: user.referralCode, // client ko referral code bhi bhej do taake wo share kar sake
       },
+    };
+  }
+
+  async verifyEmailOtp(email: string, otp: string) {
+    const isValid = await this.otpService.verifyOtp(email, otp);
+    if (!isValid) throw new BadRequestException('Invalid or expired OTP');
+
+    const user = await this.userModel
+      .findOneAndUpdate({ email }, { isEmailVerified: true }, { new: true })
+      .select('-password');
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return { message: 'Email verified successfully', user };
+  }
+
+  async resendOtp(email: string) {
+    const user = await this.userModel.findOne({ email });
+
+    if (!user) {
+      throw new NotFoundException('User not found with this email');
+    }
+
+    if (user.isEmailVerified) {
+      return { message: 'Email is already verified' };
+    }
+
+    // 6-digit OTP generate karo
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 1 * 60 * 1000); // 1 minute expiry
+
+    // OTP save karo (insert ya update)
+    await this.otpModel.findOneAndUpdate(
+      { email: user.email.toLowerCase() },
+      { otp: otpCode, expiresAt },
+      { upsert: true, new: true },
+    );
+
+    // OTP Email bhejo (email service call karo)
+    await this.emailService.sendEmailOtp(user.email, otpCode);
+
+    return {
+      message: 'OTP resent successfully',
     };
   }
 
@@ -70,6 +122,13 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    if (!user.isEmailVerified) {
+      throw new UnauthorizedException(
+        'Please verify your email before logging in.',
+      );
+    }
+
     const token = this.generateToken(user);
 
     return {
@@ -93,7 +152,7 @@ export class AuthService {
     });
 
     const payload = ticket.getPayload();
-    console.log('Google Payload:', payload);
+    // console.log('Google Payload:', payload);
 
     if (!payload) {
       throw new UnauthorizedException('Invalid Google token');
