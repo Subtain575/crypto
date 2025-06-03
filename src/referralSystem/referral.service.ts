@@ -11,8 +11,10 @@ import { customAlphabet } from 'nanoid';
 import { CreateUserWithReferralDto } from './dto/referral.dto';
 import { Types } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
+import { WalletService } from '../wallet/wallet.service';
 @Injectable()
 export class ReferralService {
+  private walletService: WalletService;
   private generateId = customAlphabet(
     '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ',
     8,
@@ -56,7 +58,7 @@ export class ReferralService {
       referredBy: referredByUser?._id || null,
       rewardPoints: 0,
     });
-
+    await this.walletService.createWallet(user._id.toString());
     // Add reward points if referred by someone (no change)
     if (referredByUser) {
       await Promise.all([

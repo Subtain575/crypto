@@ -46,7 +46,11 @@ export class AuthService {
       throw new UnauthorizedException('Failed to register user');
     }
 
-    await this.walletService.createWallet(user._id.toString());
+    const wallet = await this.walletService.createWallet(user._id.toString());
+
+    await this.userModel.findByIdAndUpdate(user._id, {
+      wallet: wallet._id,
+    });
 
     await this.otpService.generateOtp(user.email);
 
@@ -200,6 +204,13 @@ export class AuthService {
       throw new UnauthorizedException('User could not be found or created');
     }
     const token = this.generateToken(user);
+    const wallet = await this.walletService.createWallet(user._id.toString());
+
+    await this.userModel.findByIdAndUpdate(user._id, {
+      wallet: wallet._id,
+    });
+    console.log('Wallet created for:', user._id);
+    console.log('Wallet:', wallet);
     return {
       message: 'Sign in successfully via Google',
       token,
@@ -211,6 +222,7 @@ export class AuthService {
         role: user.role,
         referralCode: user.referralCode,
       },
+      wallet,
     };
   }
 

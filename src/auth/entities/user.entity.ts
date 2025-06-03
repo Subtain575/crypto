@@ -50,6 +50,9 @@ export class User {
 
   @Prop({ default: 'local' }) // 'local' | 'google' | 'facebook' etc
   provider: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'Wallet', default: null })
+  wallet?: Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

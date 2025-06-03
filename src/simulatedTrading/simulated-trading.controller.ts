@@ -59,11 +59,9 @@ export class SimulatedTradingController {
   @Get('user-trades')
   @ApiOperation({ summary: 'Get all simulated trades of the logged-in user' })
   async getMyTrades(@Req() req: RequestWithUser) {
-    const userId = req.user.sub;
-    const trades = await this.service.getUserCurrentHoldings(userId);
+    const result = await this.service.getUserCurrentHoldings(req.user.sub);
     return {
-      count: trades.length,
-      data: trades,
+      result,
     };
   }
 }

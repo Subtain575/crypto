@@ -4,6 +4,13 @@ import { Model } from 'mongoose';
 import { SimulatedTrade } from './schema/simulatedTrade.schema';
 import { SimulatedPortfolio } from './schema/simulated-portfolio.schema';
 
+export interface HoldingResult {
+  symbol: string;
+  holding: number;
+  price: number;
+  type: 'BUY' | 'SELL';
+}
+
 @Injectable()
 export class SimulatedTradingService {
   constructor(
@@ -29,12 +36,10 @@ export class SimulatedTradingService {
     });
 
     return {
-      data: {
-        symbol,
-        quantity,
-        price,
-        type: 'BUY',
-      },
+      symbol,
+      quantity,
+      price,
+      type: 'BUY',
     };
   }
 
@@ -54,17 +59,15 @@ export class SimulatedTradingService {
     });
 
     return {
-      data: {
-        symbol,
-        quantity,
-        price,
-        type: 'SELL',
-      },
+      symbol,
+      quantity,
+      price,
+      type: 'SELL',
     };
   }
 
-  async getUserCurrentHoldings(userId: string) {
-    return this.tradeModel.aggregate([
+  async getUserCurrentHoldings(userId: string): Promise<HoldingResult | null> {
+    const holdings = await this.tradeModel.aggregate<HoldingResult>([
       { $match: { user: userId } },
       {
         $group: {
@@ -79,23 +82,32 @@ export class SimulatedTradingService {
               $cond: [{ $eq: ['$type', 'SELL'] }, '$quantity', 0],
             },
           },
+          lastBuy: {
+            $last: {
+              $cond: [{ $eq: ['$type', 'BUY'] }, '$$ROOT', null],
+            },
+          },
         },
       },
       {
         $project: {
           _id: 0,
           symbol: '$_id',
-          holding: { $subtract: ['$totalBuy', '$totalSell'] },
+          quantity: { $subtract: ['$totalBuy', '$totalSell'] },
+          price: '$lastBuy.price',
+          type: '$lastBuy.type',
         },
       },
       {
         $match: {
-          holding: { $gt: 0 },
+          quantity: { $gt: 0 },
         },
       },
       {
-        $sort: { holding: -1 },
+        $sort: { quantity: -1 },
       },
     ]);
+
+    return holdings[0] || null;
   }
 }
