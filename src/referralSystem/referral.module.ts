@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ReferralService } from './referral.service';
 import { ReferralController } from './referral.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from '../auth/entities/user.entity';
+import { User, UserSchema } from '../auth/schema/user.schema';
 
 @Module({
   imports: [

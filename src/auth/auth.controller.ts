@@ -23,7 +23,7 @@ import {
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
-import { UserDetails } from './entities/user.entity';
+import { UserDetails } from './schema/user.schema';
 import { Request } from 'express';
 import { VerifyEmailDto } from './dtos/verify-email.dto';
 import { ResendOtpDto } from './dtos/resend-otp.dto';

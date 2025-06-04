@@ -14,6 +14,9 @@ export class SimulatedTrade extends Document {
 
   @Prop({ default: Date.now })
   timestamp: Date;
+
+  @Prop({ default: Date.now })
+  createdAt: Date;
 }
 
 export const SimulatedTradeSchema =

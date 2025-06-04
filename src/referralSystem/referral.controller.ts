@@ -21,8 +21,12 @@ import {
   CreateUserWithReferralDto,
   ApplyReferralDto,
 } from './dto/referral.dto';
-import { RequestWithUser } from '../simulatedTrading/simulated-trading.controller';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UserDetails } from '../auth/schema/user.schema';
+
+interface RequestWithUserDetails extends Request {
+  user: UserDetails;
+}
 
 @ApiTags('Referral')
 @Controller('referral')
@@ -54,17 +58,16 @@ export class ReferralController {
   @ApiOperation({ summary: 'Apply referral code' })
   @ApiResponse({ status: 200, description: 'Referral applied successfully' })
   async applyReferralCode(
-    @Req() req: RequestWithUser,
+    @Req() req: RequestWithUserDetails,
     @Body() dto: ApplyReferralDto,
   ) {
-    const userId = req.user.sub; // from JWT token payload
+    const userId = req.user.sub;
     const { referralCode } = dto;
 
     if (!referralCode) {
       throw new BadRequestException('Referral code is required');
     }
 
-    // Call service method to apply referral
     const result = await this.referralService.applyReferral(
       userId,
       referralCode,

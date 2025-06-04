@@ -1,67 +1,75 @@
-import { Controller, Get, Post, Body, Req, UseGuards } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiBearerAuth,
-  ApiBody,
-  ApiOperation,
-  ApiResponse,
-} from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Request } from '@nestjs/common';
 import { SimulatedTradingService } from './simulated-trading.service';
+import { ApiOperation, ApiBody, ApiTags } from '@nestjs/swagger';
 import { ExecuteTradeDto } from './dto/trade.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { Request } from 'express';
 
-export interface RequestWithUser extends Request {
-  user: {
-    sub: string;
-    email?: string;
+interface RequestWithUser extends Request {
+  user?: {
+    id: string;
   };
 }
 
 @ApiTags('Simulated Trading')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth('JWT-auth')
-@Controller('sim-trade')
+@Controller('api/trading')
 export class SimulatedTradingController {
-  constructor(private readonly service: SimulatedTradingService) {}
+  constructor(
+    private readonly simulatedTradingService: SimulatedTradingService,
+  ) {}
 
+  // 1. BUY API
   @Post('buy')
-  @ApiOperation({ summary: 'Simulate a buy trade' })
-  @ApiResponse({
-    status: 201,
-    description: 'Simulated buy executed successfully',
-  })
-  async buy(@Body() dto: ExecuteTradeDto, @Req() req: RequestWithUser) {
-    return this.service.buySimulated(
-      req.user.sub,
-      dto.symbol,
-      dto.quantity,
-      dto.price,
-    );
-  }
-
-  @Post('sell')
-  @ApiOperation({ summary: 'Simulate a sell trade' })
+  @ApiOperation({ summary: 'Simulate a Buy Order' })
   @ApiBody({ type: ExecuteTradeDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Simulated sell executed successfully',
-  })
-  async sell(@Body() dto: ExecuteTradeDto, @Req() req: RequestWithUser) {
-    return this.service.sellSimulated(
-      req.user.sub,
-      dto.symbol,
-      dto.quantity,
-      dto.price,
+  async buyStock(
+    @Body()
+    body: {
+      symbol: string;
+      quantity: number;
+      price: number;
+    },
+    @Request() req: RequestWithUser,
+  ) {
+    const userId = req.user?.id || 'demo-user';
+
+    return this.simulatedTradingService.buySimulated(
+      userId,
+      body.symbol.toUpperCase(),
+      body.quantity,
+      body.price,
     );
   }
 
-  @Get('user-trades')
-  @ApiOperation({ summary: 'Get all simulated trades of the logged-in user' })
-  async getMyTrades(@Req() req: RequestWithUser) {
-    const result = await this.service.getUserCurrentHoldings(req.user.sub);
-    return {
-      result,
-    };
+  // 2. SELL API
+  @Post('sell')
+  @ApiOperation({ summary: 'Simulate a Sell Order' })
+  @ApiBody({ type: ExecuteTradeDto })
+  async sellStock(
+    @Body()
+    body: {
+      symbol: string;
+      quantity: number;
+      price: number;
+    },
+    @Request() req: RequestWithUser,
+  ) {
+    const userId = req.user?.id || 'demo-user';
+
+    return this.simulatedTradingService.sellSimulated(
+      userId,
+      body.symbol.toUpperCase(),
+      body.quantity,
+      body.price,
+    );
+  }
+
+  // 3. GET API - Yahan sara enhanced data milega
+  @Get('holdings')
+  @ApiOperation({
+    summary: "Get user's current simulated holdings with market data",
+  })
+  async getHoldings(@Request() req: RequestWithUser) {
+    const userId = req.user?.id || 'demo-user';
+
+    return this.simulatedTradingService.getUserCurrentHoldings(userId);
   }
 }

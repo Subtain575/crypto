@@ -10,14 +10,14 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDetails, UserDocument } from './entities/user.entity';
+import { User, UserDetails, UserDocument } from './schema/user.schema';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { WalletService } from '../wallet/wallet.service';
 import { ReferralService } from '../referralSystem/referral.service';
 import { OAuth2Client } from 'google-auth-library';
 import { OtpService } from './otp.service';
 import { EmailService } from './email.service';
-import { Otp, OtpDocument } from './entities/otp.schema';
+import { Otp, OtpDocument } from './schema/otp.schema';
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 interface CustomError extends Error {

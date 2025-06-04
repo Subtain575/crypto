@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Otp, OtpDocument } from './entities/otp.schema';
+import { Otp, OtpDocument } from './schema/otp.schema';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()

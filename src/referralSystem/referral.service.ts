@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from '../auth/entities/user.entity';
+import { User, UserDocument } from '../auth/schema/user.schema';
 import { Model } from 'mongoose';
 import { customAlphabet } from 'nanoid';
 import { CreateUserWithReferralDto } from './dto/referral.dto';

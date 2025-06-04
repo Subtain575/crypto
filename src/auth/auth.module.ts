@@ -5,15 +5,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { User, UserSchema } from './entities/user.entity';
+import { User, UserSchema } from './schema/user.schema';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { WalletModule } from '../wallet/wallet.module';
 import { ReferralModule } from '../referralSystem/referral.module';
 import { OtpService } from './otp.service';
-import { Otp } from './entities/otp.schema';
-import { OtpSchema } from './entities/otp.schema';
+import { Otp } from './schema/otp.schema';
+import { OtpSchema } from './schema/otp.schema';
 import { EmailModule } from './email.module';
 @Module({
   imports: [
