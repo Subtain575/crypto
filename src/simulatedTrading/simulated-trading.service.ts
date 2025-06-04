@@ -360,4 +360,53 @@ export class SimulatedTradingService {
       };
     }
   }
+  async getUserTradeHistory(userId: string): Promise<{
+    status: number;
+    message: string;
+    data: any[];
+  }> {
+    try {
+      if (!userId) {
+        throw new BadRequestException('User ID is required');
+      }
+
+      const trades = await this.tradeModel
+        .find({ user: userId })
+        .sort({ timestamp: -1 }) // latest first
+        .lean();
+
+      if (!trades || trades.length === 0) {
+        return {
+          status: 200,
+          message: 'No trade history found for this user',
+          data: [],
+        };
+      }
+
+      const history = trades.map((trade) => ({
+        symbol: trade.symbol,
+        quantity: trade.quantity,
+        price: trade.price,
+        type: trade.type,
+        timestamp: trade.timestamp,
+        date: new Date(trade.timestamp).toLocaleDateString(),
+        time: new Date(trade.timestamp).toLocaleTimeString(),
+      }));
+
+      return {
+        status: 200,
+        message: 'Trade history retrieved successfully',
+        data: history,
+      };
+    } catch (error) {
+      console.error('Error in getUserTradeHistory:', error);
+
+      const tradeError = error as TradeError;
+      throw new InternalServerErrorException({
+        status: 500,
+        message: 'Internal server error',
+        error: tradeError.message || 'Failed to retrieve trade history',
+      });
+    }
+  }
 }
