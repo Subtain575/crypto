@@ -14,13 +14,15 @@ import * as bcrypt from 'bcryptjs';
 import { WalletService } from '../wallet/wallet.service';
 @Injectable()
 export class ReferralService {
-  private walletService: WalletService;
   private generateId = customAlphabet(
     '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ',
     8,
   );
 
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private walletService: WalletService,
+  ) {}
 
   async generateReferralCode(userId: string) {
     const referralCode = this.generateId();

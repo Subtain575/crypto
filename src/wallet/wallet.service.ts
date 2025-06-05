@@ -30,7 +30,7 @@ export class WalletService {
 
     const wallet = new this.walletModel({
       user: userId,
-      balance: 0,
+      balance: 1000,
       transactions: [],
     });
 
