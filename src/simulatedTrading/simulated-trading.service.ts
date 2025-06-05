@@ -99,8 +99,9 @@ export class SimulatedTradingService {
         user: userId,
         symbol: symbol.toUpperCase(), // Ensure consistent symbol format
         quantity,
-        type: 'BUY',
+        type: 'buy',
         price,
+
         timestamp: new Date(),
       });
 
@@ -160,7 +161,7 @@ export class SimulatedTradingService {
         user: userId,
         symbol: symbol.toUpperCase(), // Ensure consistent symbol format
         quantity,
-        type: 'SELL',
+        type: 'sell',
         price,
         timestamp: new Date(),
       });
@@ -211,17 +212,17 @@ export class SimulatedTradingService {
             _id: '$symbol',
             totalBuy: {
               $sum: {
-                $cond: [{ $eq: ['$type', 'BUY'] }, '$quantity', 0],
+                $cond: [{ $eq: ['$type', 'buy'] }, '$quantity', 0],
               },
             },
             totalSell: {
               $sum: {
-                $cond: [{ $eq: ['$type', 'SELL'] }, '$quantity', 0],
+                $cond: [{ $eq: ['$type', 'sell'] }, '$quantity', 0],
               },
             },
             avgPrice: {
               $avg: {
-                $cond: [{ $eq: ['$type', 'BUY'] }, '$price', null],
+                $cond: [{ $eq: ['$type', 'buy'] }, '$price', null],
               },
             },
           },
