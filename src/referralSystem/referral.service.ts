@@ -34,6 +34,16 @@ export class ReferralService {
     const { firstName, lastName, email, password, referralCode } =
       createUserDto;
 
+    if (!email) {
+      throw new BadRequestException('Email is required');
+    }
+
+    // Check if user with email already exists
+    const existingUser = await this.userModel.findOne({ email });
+    if (existingUser) {
+      throw new BadRequestException('Email already exists');
+    }
+
     // Check if referral code is provided and valid
     let referredByUser: UserDocument | null = null;
     if (referralCode) {
@@ -47,7 +57,7 @@ export class ReferralService {
       ? await bcrypt.hash(password, 10)
       : undefined;
 
-    // Automatically generate referral code here for new user (Change)
+    // Automatically generate referral code here for new user
     const newReferralCode = this.generateId();
 
     // Create user with generated referral code and optional referredBy
@@ -56,12 +66,17 @@ export class ReferralService {
       lastName,
       email,
       password: hashedPassword,
-      referralCode: newReferralCode, // Changed: auto generated here
+      referralCode: newReferralCode,
       referredBy: referredByUser?._id || null,
       rewardPoints: 0,
     });
-    await this.walletService.createWallet(user._id.toString());
-    // Add reward points if referred by someone (no change)
+
+    const record = await this.walletService.createWallet(user._id.toString());
+
+    // Update the existing user with wallet instead of creating a new one
+    await this.userModel.findByIdAndUpdate(user._id, { wallet: record._id });
+
+    // Add reward points if referred by someone
     if (referredByUser) {
       await Promise.all([
         this.userModel.findByIdAndUpdate(referredByUser._id, {
