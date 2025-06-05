@@ -10,13 +10,17 @@ import {
 } from './schema/simulated-portfolio.schema';
 import { SimulatedTradingService } from './simulated-trading.service';
 import { SimulatedTradingController } from './simulated-trading.controller';
+import { WalletModule } from '../wallet/wallet.module';
+import { Wallet, WalletSchema } from '../wallet/schema/wallet.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: SimulatedTrade.name, schema: SimulatedTradeSchema },
       { name: SimulatedPortfolio.name, schema: SimulatedPortfolioSchema },
+      { name: Wallet.name, schema: WalletSchema },
     ]),
+    WalletModule,
   ],
   controllers: [SimulatedTradingController],
   providers: [SimulatedTradingService],

@@ -7,6 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SimulatedTrade } from './schema/simulatedTrade.schema';
 import { SimulatedPortfolio } from './schema/simulated-portfolio.schema';
+import { Wallet } from '../wallet/schema/wallet.schema';
 
 interface MarketData {
   priceChange: string;
@@ -59,6 +60,8 @@ export class SimulatedTradingService {
     private readonly tradeModel: Model<SimulatedTrade>,
     @InjectModel(SimulatedPortfolio.name)
     private readonly portfolioModel: Model<SimulatedPortfolio>,
+    @InjectModel(Wallet.name)
+    private readonly walletModel: Model<Wallet>,
   ) {}
 
   // Input validation helper
@@ -93,6 +96,22 @@ export class SimulatedTradingService {
     try {
       // Validate input
       this.validateTradeInput(userId, symbol, quantity, price);
+
+      const wallet = await this.walletModel.findOne({ user: userId });
+      if (!wallet) {
+        throw new BadRequestException('Wallet not found');
+      }
+
+      const totalCost = quantity * price;
+      if (wallet.balance < totalCost) {
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please add more balance.',
+        );
+      }
+
+      // Deduct balance
+      wallet.balance -= totalCost;
+      await wallet.save();
 
       // Create trade with error handling
       const trade = await this.tradeModel.create({
@@ -165,6 +184,14 @@ export class SimulatedTradingService {
         price,
         timestamp: new Date(),
       });
+
+      // Add money to wallet
+      const wallet = await this.walletModel.findOne({ user: userId });
+      if (!wallet) {
+        throw new BadRequestException('Wallet not found');
+      }
+      wallet.balance += quantity * price;
+      await wallet.save();
 
       // Check if trade was created successfully
       if (!trade) {
