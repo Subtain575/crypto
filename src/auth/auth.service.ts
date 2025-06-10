@@ -187,7 +187,6 @@ export class AuthService {
             'Failed to register user with Google',
           );
         }
-        await this.walletService.createWallet(user._id.toString());
       } catch (err: unknown) {
         const error = err as CustomError;
         if (
@@ -210,8 +209,7 @@ export class AuthService {
     await this.userModel.findByIdAndUpdate(user._id, {
       wallet: wallet._id,
     });
-    console.log('Wallet created for:', user._id);
-    console.log('Wallet:', wallet);
+
     return {
       message: 'Sign in successfully via Google',
       token,
