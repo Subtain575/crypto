@@ -31,7 +31,7 @@ export class ReferralService {
   }
 
   async registerWithReferral(createUserDto: CreateUserWithReferralDto) {
-    const { firstName, lastName, email, password, referralCode } =
+    const { firstName, lastName, email, password, referralCode, profileImage } =
       createUserDto;
 
     if (!email) {
@@ -69,7 +69,7 @@ export class ReferralService {
       referralCode: newReferralCode,
       referredBy: referredByUser?._id || null,
       rewardPoints: 0,
-      profileImage: 'picture',
+      profileImage: profileImage || null,
     });
 
     const record = await this.walletService.createWallet(user._id.toString());
