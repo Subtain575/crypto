@@ -148,7 +148,7 @@ export class AuthService {
     };
   }
 
-  async validateGoogleToken(googleToken: string) {
+  async validateGoogleToken(googleToken: string, referralCode?: string) {
     const ticket = await client.verifyIdToken({
       idToken: googleToken,
       audience:
@@ -174,7 +174,7 @@ export class AuthService {
         firstName: payload.given_name || '',
         lastName: payload.family_name || '',
         password: 'google-auth',
-        referralCode: undefined,
+        referralCode,
         provider: 'google',
         isGoogleSignup: true,
         profileImage: payload.picture || undefined,

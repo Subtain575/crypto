@@ -60,8 +60,11 @@ export class AuthController {
     description: 'Successful login',
   })
   @ApiResponse({ status: 401, description: 'Invalid Google token' })
-  async googleLogin(@Body('token') token: string) {
-    return this.authService.validateGoogleToken(token);
+  async googleLogin(
+    @Body('token') token: string,
+    @Body('referralCode') referralCode?: string,
+  ) {
+    return this.authService.validateGoogleToken(token, referralCode);
   }
 
   @Post('verify-email')
