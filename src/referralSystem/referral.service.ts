@@ -108,12 +108,10 @@ export class ReferralService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Return token or user info
-    return user; // Or JWT, etc.
+    return user;
   }
 
   async applyReferral(userId: string, referralCode: string) {
-    // Find the current user
     const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -123,17 +121,14 @@ export class ReferralService {
       throw new BadRequestException('Referral code already applied');
     }
 
-    // Find the user who owns this referral code
     const referredByUser = await this.userModel.findOne({ referralCode });
     if (!referredByUser) {
       throw new NotFoundException('Invalid referral code');
     }
 
-    // Update the referredBy field for current user
     user.referredBy = referredByUser._id;
     await user.save();
 
-    // Add reward points to both users
     const rewardPoints = 100;
     await Promise.all([
       this.userModel.findByIdAndUpdate(referredByUser._id, {
@@ -142,7 +137,11 @@ export class ReferralService {
       this.userModel.findByIdAndUpdate(user._id, { $inc: { rewardPoints } }),
     ]);
 
-    // Return updated reward points of current user
+    await Promise.all([
+      this.walletService.adminAdjustFunds(referredByUser._id.toString(), 100),
+      this.walletService.adminAdjustFunds(user._id.toString(), 100),
+    ]);
+
     const updatedUser = await this.userModel.findById(userId);
     if (!updatedUser) {
       throw new NotFoundException('User not found after update');

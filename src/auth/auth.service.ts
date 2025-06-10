@@ -162,7 +162,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid Google token');
     }
     const email = payload.email;
-
     let user = await this.userModel.findOne({ email });
 
     if (!user) {
@@ -179,9 +178,9 @@ export class AuthService {
         isGoogleSignup: true,
         profileImage: payload.picture || undefined,
       };
-
       try {
         user = await this.referralService.registerWithReferral(registerDto);
+
         if (!user) {
           throw new UnauthorizedException(
             'Failed to register user with Google',

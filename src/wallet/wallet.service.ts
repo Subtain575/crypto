@@ -33,8 +33,8 @@ export class WalletService {
       balance: 1000,
       transactions: [],
     });
-
-    return wallet.save();
+    const savedWallet = await wallet.save();
+    return savedWallet;
   }
 
   async deposit(userId: string, amount: number) {
