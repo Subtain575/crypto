@@ -177,6 +177,7 @@ export class AuthService {
         referralCode: undefined,
         provider: 'google',
         isGoogleSignup: true,
+        profileImage: payload.picture || undefined,
       };
 
       try {
@@ -221,6 +222,7 @@ export class AuthService {
         lastName: user.lastName,
         role: user.role,
         referralCode: user.referralCode,
+        profileImage: user.profileImage,
       },
       wallet,
     };

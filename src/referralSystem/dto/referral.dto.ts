@@ -49,6 +49,11 @@ export class CreateUserWithReferralDto {
   @ApiPropertyOptional({ default: false })
   @IsOptional()
   isGoogleSignup?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  profileImage?: string;
 }
 
 export class LoginDto {

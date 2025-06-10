@@ -53,6 +53,9 @@ export class User {
 
   @Prop({ type: Types.ObjectId, ref: 'Wallet', default: null })
   wallet?: Types.ObjectId;
+
+  @Prop()
+  profileImage?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

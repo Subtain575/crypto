@@ -31,6 +31,10 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   referredBy?: string;
+
+  @IsOptional()
+  @IsString()
+  profileImage?: string;
 }
 
 export class LoginDto {
