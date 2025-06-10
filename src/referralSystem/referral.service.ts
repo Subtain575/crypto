@@ -87,6 +87,7 @@ export class ReferralService {
           $inc: { rewardPoints: 100 },
         }),
         this.walletService.adminAdjustFunds(referredByUser._id.toString(), 100),
+        this.walletService.adminAdjustFunds(user._id.toString(), 100),
       ]);
     }
     const updatedUser = await this.userModel.findById(user._id);
