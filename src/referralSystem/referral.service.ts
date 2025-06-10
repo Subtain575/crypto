@@ -69,6 +69,7 @@ export class ReferralService {
       referralCode: newReferralCode,
       referredBy: referredByUser?._id || null,
       rewardPoints: 0,
+      profileImage: 'picture',
     });
 
     const record = await this.walletService.createWallet(user._id.toString());
@@ -85,6 +86,7 @@ export class ReferralService {
         this.userModel.findByIdAndUpdate(user._id, {
           $inc: { rewardPoints: 100 },
         }),
+        this.walletService.adminAdjustFunds(referredByUser._id.toString(), 100),
       ]);
     }
     const updatedUser = await this.userModel.findById(user._id);
