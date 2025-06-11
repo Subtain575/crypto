@@ -55,6 +55,10 @@ export class CreateUserWithReferralDto {
   @IsOptional()
   isGoogleSignup?: boolean;
 
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  isEmailVerified?: boolean;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

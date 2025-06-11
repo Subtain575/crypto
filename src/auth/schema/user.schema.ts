@@ -30,6 +30,9 @@ export class User {
   @Prop({ type: Types.ObjectId, ref: 'User', default: null })
   referredBy?: Types.ObjectId;
 
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
+  referredUsers?: Types.ObjectId[];
+
   @Prop({ unique: true })
   referralCode?: string;
 

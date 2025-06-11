@@ -416,6 +416,7 @@ export class SimulatedTradingService {
             referralCode: user.referralCode,
             rewardPoints: user.rewardPoints,
             referredBy: user.referredBy || null,
+            referredUsers: user.referredUsers || null,
           }
         : null;
 

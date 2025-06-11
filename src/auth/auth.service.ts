@@ -169,10 +169,10 @@ export class AuthService {
         firstName: payload.given_name || '',
         lastName: payload.family_name || '',
         password: 'google-auth',
-
         referralCode,
         provider: 'google',
         isGoogleSignup: true,
+        isEmailVerified: true,
         profileImage: payload.picture || undefined,
       };
       const newUser =
