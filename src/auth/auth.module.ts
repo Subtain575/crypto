@@ -25,7 +25,7 @@ import { EmailModule } from './email.module';
       inject: [ConfigService],
       useFactory: (cs: ConfigService) => ({
         secret: cs.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '24h' },
+        signOptions: { expiresIn: '2m' },
       }),
     }),
     MongooseModule.forFeature([{ name: Otp.name, schema: OtpSchema }]),
