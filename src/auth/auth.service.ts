@@ -169,6 +169,7 @@ export class AuthService {
         firstName: payload.given_name || '',
         lastName: payload.family_name || '',
         password: 'google-auth',
+
         referralCode,
         provider: 'google',
         isGoogleSignup: true,
@@ -198,6 +199,7 @@ export class AuthService {
           firstName: newUser.firstName,
           lastName: newUser.lastName,
           role: newUser.role,
+          referredBy: newUser.referredBy,
           referralCode: newUser.referralCode,
           profileImage: newUser.profileImage,
           isReferred,
@@ -219,6 +221,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        referredBy: user.referredBy,
         referralCode: user.referralCode,
         profileImage: user.profileImage,
         isReferred: !!user.referredBy,

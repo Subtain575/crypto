@@ -406,6 +406,19 @@ export class SimulatedTradingService {
         throw new BadRequestException('User ID is required');
       }
 
+      const user = await this.userModel
+        .findById(userId)
+        .populate('referredBy', 'firstName lastName email referralCode')
+        .select('referralCode rewardPoints referredBy');
+
+      const referralData = user
+        ? {
+            referralCode: user.referralCode,
+            rewardPoints: user.rewardPoints,
+            referredBy: user.referredBy || null,
+          }
+        : null;
+
       const trades = await this.tradeModel
         .find({ user: userId })
         .sort({ timestamp: -1 }) // latest first
@@ -416,7 +429,7 @@ export class SimulatedTradingService {
           status: 200,
           message: 'No trade history found for this user',
           data: [],
-          referral: null,
+          referral: referralData,
         };
       }
       const history = trades.map((trade) => ({
@@ -429,22 +442,11 @@ export class SimulatedTradingService {
         time: new Date(trade.timestamp).toLocaleTimeString(),
       }));
 
-      const user = await this.userModel
-        .findById(userId)
-        .populate('referredBy', 'firstName lastName email referralCode')
-        .select('referralCode rewardPoints referredBy');
-
       return {
-        referral: user
-          ? {
-              referralCode: user.referralCode,
-              rewardPoints: user.rewardPoints,
-              referredBy: user.referredBy || null,
-            }
-          : null,
         status: 200,
         message: 'Trade history retrieved successfully',
         data: history,
+        referral: referralData,
       };
     } catch (error) {
       console.error('Error in getUserTradeHistory:', error);
