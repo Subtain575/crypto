@@ -41,7 +41,7 @@ export class CourseService {
   async createCourse(dto: CreateCourseDto, createdBy: string) {
     const course = new this.courseModel({
       ...dto,
-      createdBy, // set here
+      createdBy,
     });
     return course.save();
   }

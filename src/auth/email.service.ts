@@ -25,7 +25,6 @@ export class EmailService {
       this.logger.error(`Failed to send OTP email to ${email}:`, errorMessage);
       this.logger.error('Full error details:', error);
 
-      // Throw a more specific error message
       if (errorMessage.includes('ssl3_get_record:wrong version number')) {
         throw new Error(
           'Email service SSL configuration error. Please check SMTP settings.',

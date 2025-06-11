@@ -70,6 +70,7 @@ export class ReferralService {
       referredBy: referredByUser?._id || null,
       rewardPoints: 0,
       profileImage: profileImage || null,
+      isReferred: !!referredByUser,
     });
 
     const record = await this.walletService.createWallet(user._id.toString());

@@ -41,6 +41,11 @@ export class CreateUserWithReferralDto {
   @IsString()
   referralCode?: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  referredBy?: string;
+
   @ApiPropertyOptional({ default: 'local' })
   @IsOptional()
   @IsString()

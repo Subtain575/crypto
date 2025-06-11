@@ -26,21 +26,16 @@ export class OtpService {
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedOtp = otp.trim();
 
-    // console.log('Verifying OTP for:', normalizedEmail, normalizedOtp);
-
     const record = await this.otpModel.findOne({
       email: normalizedEmail,
       otp: normalizedOtp,
     });
 
-    // console.log('Record found:', record);
-    // console.log('Current time:', new Date());
-
     if (!record || record.expiresAt < new Date()) {
       return false;
     }
 
-    await this.otpModel.deleteMany({ email: normalizedEmail }); // cleanup
+    await this.otpModel.deleteMany({ email: normalizedEmail });
     return true;
   }
 
@@ -48,8 +43,8 @@ export class OtpService {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER, // Gmail ID
-        pass: process.env.EMAIL_PASS, // Gmail App Password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 

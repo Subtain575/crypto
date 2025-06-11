@@ -48,7 +48,7 @@ export class User {
   @Prop({ default: false })
   isGoogleSignup: boolean;
 
-  @Prop({ default: 'local' }) // 'local' | 'google' | 'facebook' etc
+  @Prop({ default: 'local' })
   provider: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Wallet', default: null })

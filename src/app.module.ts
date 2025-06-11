@@ -38,8 +38,6 @@ import { EmailModule } from './auth/email.module';
         }
         return {
           uri,
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
           retryAttempts: 3,
           retryDelay: 1000,
         };

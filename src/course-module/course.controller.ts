@@ -44,7 +44,7 @@ export class CourseController {
     @Body() dto: CreateCourseDto,
     @Req() req: Request & { user: { _id: string } },
   ) {
-    const adminId = req.user._id; // from JWT token
+    const adminId = req.user._id;
     return this.courseService.createCourse(dto, adminId);
   }
 

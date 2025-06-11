@@ -20,10 +20,10 @@ import { EmailService } from './email.service';
 import { Otp, OtpDocument } from './schema/otp.schema';
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-interface CustomError extends Error {
-  status?: number;
-  code?: number;
-}
+// interface CustomError extends Error {
+//   status?: number;
+//   code?: number;
+// }
 
 @Injectable()
 export class AuthService {
@@ -54,7 +54,6 @@ export class AuthService {
 
     await this.otpService.generateOtp(user.email);
 
-    // JWT token generate karo
     const token = this.generateToken(user);
 
     return {
@@ -66,7 +65,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        referralCode: user.referralCode, // client ko referral code bhi bhej do taake wo share kar sake
+        referralCode: user.referralCode,
       },
     };
   }
@@ -95,18 +94,15 @@ export class AuthService {
       return { message: 'Email is already verified' };
     }
 
-    // 6-digit OTP generate karo
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 1 * 60 * 1000); // 1 minute expiry
 
-    // OTP save karo (insert ya update)
     await this.otpModel.findOneAndUpdate(
       { email: user.email.toLowerCase() },
       { otp: otpCode, expiresAt },
       { upsert: true, new: true },
     );
 
-    // OTP Email bhejo (email service call karo)
     await this.emailService.sendEmailOtp(user.email, otpCode);
 
     return {
@@ -162,7 +158,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid Google token');
     }
     const email = payload.email;
-    let user = await this.userModel.findOne({ email });
+    const user = await this.userModel.findOne({ email });
 
     if (!user) {
       if (!payload.email) {
@@ -178,54 +174,35 @@ export class AuthService {
         isGoogleSignup: true,
         profileImage: payload.picture || undefined,
       };
-      try {
-        user = await this.referralService.registerWithReferral(registerDto);
-
-        if (!user) {
-          throw new UnauthorizedException(
-            'Failed to register user with Google',
-          );
-        }
-      } catch (err: unknown) {
-        const error = err as CustomError;
-        if (
-          error.status === 409 ||
-          error.code === 11000 ||
-          error.message?.includes('already exists')
-        ) {
-          user = await this.userModel.findOne({ email });
-        } else {
-          throw err;
-        }
+      const user = await this.referralService.registerWithReferral(registerDto);
+      if (!user) {
+        throw new UnauthorizedException('User could not be found or created');
       }
-    }
-    if (!user) {
-      throw new UnauthorizedException('User could not be found or created');
-    }
-    const token = this.generateToken(user);
-    const wallet = await this.walletService.createWallet(user._id.toString());
+      const isReferred = !!registerDto.referredBy || !!user.referredBy;
 
-    await this.userModel.findByIdAndUpdate(user._id, {
-      wallet: wallet._id,
-    });
-    const isReferred = referralCode ? true : false;
-    return {
-      message: 'Sign in successfully via Google',
-      token,
-      user: {
-        id: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        referralCode: user.referralCode,
-        profileImage: user.profileImage,
-        isReferred,
-      },
-      wallet,
-    };
+      const token = this.generateToken(user);
+      const wallet = await this.walletService.createWallet(user._id.toString());
+
+      await this.userModel.findByIdAndUpdate(user._id, {
+        wallet: wallet._id,
+      });
+      return {
+        message: 'Sign in successfully via Google',
+        token,
+        user: {
+          id: user._id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          referralCode: user.referralCode,
+          profileImage: user.profileImage,
+          isReferred,
+        },
+        wallet,
+      };
+    }
   }
-
   async findAll(currentUser: UserDetails): Promise<UserDocument[]> {
     if (currentUser.role !== 'admin') {
       throw new UnauthorizedException('Only admin can access all users');
