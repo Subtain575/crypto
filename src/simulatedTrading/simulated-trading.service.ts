@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import { SimulatedTrade } from './schema/simulatedTrade.schema';
 import { SimulatedPortfolio } from './schema/simulated-portfolio.schema';
 import { Wallet } from '../wallet/schema/wallet.schema';
+import { User } from '../auth/schema/user.schema';
 
 interface MarketData {
   priceChange: string;
@@ -62,6 +63,8 @@ export class SimulatedTradingService {
     private readonly portfolioModel: Model<SimulatedPortfolio>,
     @InjectModel(Wallet.name)
     private readonly walletModel: Model<Wallet>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
   ) {}
 
   // Input validation helper
@@ -392,6 +395,11 @@ export class SimulatedTradingService {
     status: number;
     message: string;
     data: any[];
+    referral: {
+      referralCode: string | undefined;
+      rewardPoints: number;
+      referredBy: any;
+    } | null;
   }> {
     try {
       if (!userId) {
@@ -408,9 +416,9 @@ export class SimulatedTradingService {
           status: 200,
           message: 'No trade history found for this user',
           data: [],
+          referral: null,
         };
       }
-
       const history = trades.map((trade) => ({
         symbol: trade.symbol,
         quantity: trade.quantity,
@@ -421,7 +429,19 @@ export class SimulatedTradingService {
         time: new Date(trade.timestamp).toLocaleTimeString(),
       }));
 
+      const user = await this.userModel
+        .findById(userId)
+        .populate('referredBy', 'firstName lastName email referralCode')
+        .select('referralCode rewardPoints referredBy');
+
       return {
+        referral: user
+          ? {
+              referralCode: user.referralCode,
+              rewardPoints: user.rewardPoints,
+              referredBy: user.referredBy || null,
+            }
+          : null,
         status: 200,
         message: 'Trade history retrieved successfully',
         data: history,

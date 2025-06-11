@@ -12,6 +12,7 @@ import { SimulatedTradingService } from './simulated-trading.service';
 import { SimulatedTradingController } from './simulated-trading.controller';
 import { WalletModule } from '../wallet/wallet.module';
 import { Wallet, WalletSchema } from '../wallet/schema/wallet.schema';
+import { User, UserSchema } from '../auth/schema/user.schema';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { Wallet, WalletSchema } from '../wallet/schema/wallet.schema';
       { name: SimulatedTrade.name, schema: SimulatedTradeSchema },
       { name: SimulatedPortfolio.name, schema: SimulatedPortfolioSchema },
       { name: Wallet.name, schema: WalletSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     WalletModule,
   ],
