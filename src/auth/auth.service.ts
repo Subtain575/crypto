@@ -174,34 +174,57 @@ export class AuthService {
         isGoogleSignup: true,
         profileImage: payload.picture || undefined,
       };
-      const user = await this.referralService.registerWithReferral(registerDto);
-      if (!user) {
+      const newUser =
+        await this.referralService.registerWithReferral(registerDto);
+      if (!newUser) {
         throw new UnauthorizedException('User could not be found or created');
       }
-      const isReferred = !!registerDto.referredBy || !!user.referredBy;
+      const isReferred = !!registerDto.referredBy || !!newUser.referredBy;
 
-      const token = this.generateToken(user);
-      const wallet = await this.walletService.createWallet(user._id.toString());
+      const token = this.generateToken(newUser);
+      const wallet = await this.walletService.createWallet(
+        newUser._id.toString(),
+      );
 
-      await this.userModel.findByIdAndUpdate(user._id, {
+      await this.userModel.findByIdAndUpdate(newUser._id, {
         wallet: wallet._id,
       });
       return {
         message: 'Sign in successfully via Google',
         token,
         user: {
-          id: user._id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-          referralCode: user.referralCode,
-          profileImage: user.profileImage,
+          id: newUser._id,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          role: newUser.role,
+          referralCode: newUser.referralCode,
+          profileImage: newUser.profileImage,
           isReferred,
         },
         wallet,
       };
     }
+
+    // Existing user login
+    const token = this.generateToken(user);
+    const wallet = await this.walletService.getWallet(user._id.toString());
+
+    return {
+      message: 'Sign in successfully via Google',
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        referralCode: user.referralCode,
+        profileImage: user.profileImage,
+        isReferred: !!user.referredBy,
+      },
+      wallet,
+    };
   }
   async findAll(currentUser: UserDetails): Promise<UserDocument[]> {
     if (currentUser.role !== 'admin') {
