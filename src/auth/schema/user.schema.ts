@@ -56,6 +56,9 @@ export class User {
 
   @Prop()
   profileImage?: string;
+
+  @Prop({ default: false })
+  isReferred: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -208,7 +208,7 @@ export class AuthService {
     await this.userModel.findByIdAndUpdate(user._id, {
       wallet: wallet._id,
     });
-
+    const isReferred = referralCode ? true : false;
     return {
       message: 'Sign in successfully via Google',
       token,
@@ -220,6 +220,7 @@ export class AuthService {
         role: user.role,
         referralCode: user.referralCode,
         profileImage: user.profileImage,
+        isReferred,
       },
       wallet,
     };
