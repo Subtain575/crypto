@@ -409,14 +409,15 @@ export class SimulatedTradingService {
       const user = await this.userModel
         .findById(userId)
         .populate('referredBy', 'firstName lastName email referralCode')
-        .select('referralCode rewardPoints referredBy');
+        .populate('referredUsers', 'firstName lastName email referralCode')
+        .select('referralCode rewardPoints referredBy referredUsers');
 
       const referralData = user
         ? {
             referralCode: user.referralCode,
             rewardPoints: user.rewardPoints,
             referredBy: user.referredBy || null,
-            referredUsers: user.referredUsers || null,
+            referredUsers: user.referredUsers || [],
           }
         : null;
 
