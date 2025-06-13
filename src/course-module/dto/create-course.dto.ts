@@ -35,6 +35,14 @@ export class CreateCourseDto {
   videoUrls: string[];
 
   @ApiProperty({
+    description: 'User ID who created the course',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  createdBy?: string;
+
+  @ApiProperty({
     description: 'Publish status of the course',
     default: false,
     required: false,

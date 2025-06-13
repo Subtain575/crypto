@@ -20,11 +20,6 @@ import { EmailService } from './email.service';
 import { Otp, OtpDocument } from './schema/otp.schema';
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// interface CustomError extends Error {
-//   status?: number;
-//   code?: number;
-// }
-
 @Injectable()
 export class AuthService {
   constructor(

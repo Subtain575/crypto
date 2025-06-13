@@ -20,6 +20,15 @@ import { UserRole } from '../auth/enums/user-role.enum';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Types } from 'mongoose';
 
+export interface RequestWithUser extends Request {
+  user: {
+    _id: string;
+    email: string;
+    role: string;
+    // add other JWT payload fields if needed
+  };
+}
+
 @ApiTags('Courses')
 @ApiBearerAuth()
 @Controller('courses')
@@ -40,10 +49,7 @@ export class CourseController {
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  create(
-    @Body() dto: CreateCourseDto,
-    @Req() req: Request & { user: { _id: string } },
-  ) {
+  create(@Body() dto: CreateCourseDto, @Req() req: RequestWithUser) {
     const adminId = req.user._id;
     return this.courseService.createCourse(dto, adminId);
   }
