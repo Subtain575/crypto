@@ -3,12 +3,18 @@ import { InjectModel } from '@nestjs/mongoose';
 import { SimulatedTrade } from '../simulatedTrading/schema/simulatedTrade.schema';
 import { Model } from 'mongoose';
 import { CreateAnalyticsDto } from './dto/create-analytics.dto';
+import { User } from '../auth/schema/user.schema';
+import { Course } from '../course-module/schemas/course.schema';
 
 @Injectable()
 export class AnalyticsService {
   constructor(
     @InjectModel(SimulatedTrade.name)
     private readonly tradeModel: Model<SimulatedTrade>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
+    @InjectModel(Course.name)
+    private readonly courseModel: Model<Course>,
   ) {}
 
   async getUserAnalytics(userId: string): Promise<CreateAnalyticsDto> {
@@ -38,6 +44,19 @@ export class AnalyticsService {
       winRate: +winRate.toFixed(2),
       avgTradeSize: +avgTradeSize.toFixed(2),
       avgProfitOrLoss: +avgProfitOrLoss.toFixed(2),
+    };
+  }
+  async getAppStats() {
+    const totalUsers = await this.userModel.countDocuments();
+    const premiumUsers = await this.userModel.countDocuments({
+      isPremium: true,
+    });
+    const totalCourses = await this.courseModel.countDocuments();
+
+    return {
+      totalUsers,
+      premiumUsers,
+      totalCourses,
     };
   }
 }

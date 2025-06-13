@@ -29,4 +29,11 @@ export class AnalyticsController {
   async getAnalytics(@Req() req: RequestWithUser): Promise<CreateAnalyticsDto> {
     return this.analyticsService.getUserAnalytics(req.user.sub);
   }
+
+  @Get('stats')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get app stats' })
+  async getStats() {
+    return this.analyticsService.getAppStats();
+  }
 }
