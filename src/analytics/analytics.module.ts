@@ -6,8 +6,8 @@ import {
   SimulatedTrade,
   SimulatedTradeSchema,
 } from '../simulatedTrading/schema/simulatedTrade.schema';
-import { Course, CourseSchema } from '@/course-module/schemas/course.schema';
-import { User, UserSchema } from '@/auth/schema/user.schema';
+import { Course, CourseSchema } from '../course-module/schemas/course.schema';
+import { User, UserSchema } from '../auth/schema/user.schema';
 
 @Module({
   imports: [
