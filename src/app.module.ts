@@ -19,6 +19,8 @@ import { ReferralModule } from './referralSystem/referral.module';
 import { SimulatedTradingModule } from './simulatedTrading/simulated-trading.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { EmailModule } from './auth/email.module';
+import { CloudinaryModule } from './simulatedTrading/cloudinary/cloudinary.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
@@ -43,6 +45,9 @@ import { EmailModule } from './auth/email.module';
         };
       },
     }),
+    MulterModule.register({
+      dest: './uploads',
+    }),
     AuthModule,
     TicketModule,
     ReplyModule,
@@ -54,6 +59,7 @@ import { EmailModule } from './auth/email.module';
     SimulatedTradingModule,
     AnalyticsModule,
     EmailModule,
+    CloudinaryModule,
   ],
   controllers: [],
   providers: [],

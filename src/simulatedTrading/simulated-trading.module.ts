@@ -13,6 +13,7 @@ import { SimulatedTradingController } from './simulated-trading.controller';
 import { WalletModule } from '../wallet/wallet.module';
 import { Wallet, WalletSchema } from '../wallet/schema/wallet.schema';
 import { User, UserSchema } from '../auth/schema/user.schema';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { User, UserSchema } from '../auth/schema/user.schema';
       { name: User.name, schema: UserSchema },
     ]),
     WalletModule,
+    CloudinaryModule,
   ],
   controllers: [SimulatedTradingController],
   providers: [SimulatedTradingService],

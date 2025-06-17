@@ -1,5 +1,5 @@
 // dto/trade.dto.ts
-import { IsString, IsNumber } from 'class-validator';
+import { IsString, IsNumber, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ExecuteTradeDto {
@@ -25,9 +25,11 @@ export class ExecuteTradeDto {
   price: number;
 
   @ApiProperty({
-    example: 'https://example.com/image.png',
+    type: 'string',
+    format: 'binary',
     description: 'Image of the trade',
+    required: false,
   })
-  @IsString()
-  image?: string;
+  @IsOptional()
+  image?: any; // Use 'any' here and handle proper typing in controller
 }

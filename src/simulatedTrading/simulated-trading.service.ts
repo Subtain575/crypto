@@ -115,17 +115,18 @@ export class SimulatedTradingService {
       wallet.balance -= totalCost;
       await wallet.save();
 
-      const trade = await this.tradeModel.create({
+      const tradeData = {
         user: userId,
         symbol: symbol.toUpperCase(), // Ensure consistent symbol format
         quantity,
         type: 'buy',
         price,
-        image: image || null,
         timestamp: new Date(),
-      });
+        ...(image && { image }),
+      };
 
-      // Check if trade was created successfully
+      const trade = await this.tradeModel.create(tradeData);
+
       if (!trade) {
         throw new InternalServerErrorException('Failed to create trade record');
       }
@@ -135,7 +136,7 @@ export class SimulatedTradingService {
         quantity: trade.quantity,
         price: trade.price,
         type: trade.type,
-        image: trade.image,
+        image: trade.image || null,
         timestamp: trade.timestamp,
       };
     } catch (error) {
