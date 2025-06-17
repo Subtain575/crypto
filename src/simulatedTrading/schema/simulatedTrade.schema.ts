@@ -8,6 +8,7 @@ export class SimulatedTrade extends Document {
   @Prop({ required: true }) quantity: number;
   @Prop({ required: true }) price: number;
   @Prop({ required: true, enum: ['buy', 'sell'] }) type: 'buy' | 'sell';
+  @Prop() image?: string;
 
   @Prop({ enum: ['win', 'loss'], default: null }) outcome?: 'win' | 'loss';
 

@@ -89,15 +89,14 @@ export class SimulatedTradingService {
     }
   }
 
-  // 1. BUY API - Fixed with proper error handling
   async buySimulated(
     userId: string,
     symbol: string,
     quantity: number,
     price: number,
+    image?: string,
   ) {
     try {
-      // Validate input
       this.validateTradeInput(userId, symbol, quantity, price);
 
       const wallet = await this.walletModel.findOne({ user: userId });
@@ -112,18 +111,16 @@ export class SimulatedTradingService {
         );
       }
 
-      // Deduct balance
       wallet.balance -= totalCost;
       await wallet.save();
 
-      // Create trade with error handling
       const trade = await this.tradeModel.create({
         user: userId,
         symbol: symbol.toUpperCase(), // Ensure consistent symbol format
         quantity,
         type: 'buy',
         price,
-
+        image: image || null,
         timestamp: new Date(),
       });
 
@@ -137,6 +134,7 @@ export class SimulatedTradingService {
         quantity: trade.quantity,
         price: trade.price,
         type: trade.type,
+        image: trade.image,
         timestamp: trade.timestamp,
       };
     } catch (error) {

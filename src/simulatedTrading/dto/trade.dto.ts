@@ -23,4 +23,11 @@ export class ExecuteTradeDto {
   })
   @IsNumber()
   price: number;
+
+  @ApiProperty({
+    example: 'https://example.com/image.png',
+    description: 'Image of the trade',
+  })
+  @IsString()
+  image?: string;
 }
