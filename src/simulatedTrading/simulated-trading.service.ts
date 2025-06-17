@@ -47,6 +47,7 @@ export interface HoldingResult extends MarketData {
   type: 'BUY' | 'SELL';
   totalValue: number;
   profitLoss: number;
+  image?: string | null;
 }
 
 interface TradeError extends Error {
@@ -226,7 +227,7 @@ export class SimulatedTradingService {
   async getUserCurrentHoldings(userId: string): Promise<{
     status: number;
     message: string;
-    data: HoldingResult[];
+    data: HoldingResult[] & { image?: string }[];
   }> {
     try {
       if (!userId) {
@@ -282,30 +283,50 @@ export class SimulatedTradingService {
         };
       }
 
-      const enhancedHoldings: HoldingResult[] = basicHoldings
-        .map((holding) => {
-          if (!holding || !holding.symbol) {
-            console.error('Invalid holding object:', holding);
-            return null;
-          }
-
-          const marketData = this.generateMarketData(holding.symbol);
-          const currentPrice = parseFloat(marketData.lastPrice);
-          const totalValue = holding.holding * currentPrice;
-          const profitLoss = totalValue - holding.holding * holding.price;
-
-          const result: HoldingResult = {
-            symbol: holding.symbol,
-            holding: holding.holding,
-            price: holding.price || 0,
-            type: holding.type,
-            ...marketData,
-            totalValue: parseFloat(totalValue.toFixed(2)),
-            profitLoss: parseFloat(profitLoss.toFixed(2)),
-          };
-          return result;
+      const latestBuyTrades = await this.tradeModel
+        .find({
+          user: userId,
+          type: 'buy',
+          symbol: { $in: basicHoldings.map((h) => h.symbol) },
         })
-        .filter((holding): holding is HoldingResult => holding !== null);
+        .sort({ timestamp: -1 })
+        .lean();
+
+      const imageMap = new Map<string, string>();
+      for (const trade of latestBuyTrades) {
+        if (!imageMap.has(trade.symbol) && trade.image) {
+          imageMap.set(trade.symbol, trade.image);
+        }
+      }
+
+      const enhancedHoldings: (HoldingResult & { image?: string })[] =
+        basicHoldings
+          .map((holding) => {
+            if (!holding || !holding.symbol) {
+              return null;
+            }
+
+            const marketData = this.generateMarketData(holding.symbol);
+            const currentPrice = parseFloat(marketData.lastPrice);
+            const totalValue = holding.holding * currentPrice;
+            const profitLoss = totalValue - holding.holding * holding.price;
+
+            const result: HoldingResult = {
+              symbol: holding.symbol,
+              holding: holding.holding,
+              price: holding.price || 0,
+              type: holding.type,
+              ...marketData,
+              totalValue: parseFloat(totalValue.toFixed(2)),
+              profitLoss: parseFloat(profitLoss.toFixed(2)),
+              image: imageMap.get(holding.symbol) || null,
+            };
+            return result;
+          })
+          .filter(
+            (holding): holding is HoldingResult & { image?: string } =>
+              holding !== null,
+          );
 
       return {
         status: 200,
@@ -314,10 +335,6 @@ export class SimulatedTradingService {
       };
     } catch (error) {
       console.error('Error in getUserCurrentHoldings:', error);
-
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
 
       const tradeError = error as TradeError;
       throw new InternalServerErrorException({
@@ -328,7 +345,6 @@ export class SimulatedTradingService {
     }
   }
 
-  // Generate realistic market data - Fixed with better error handling
   private generateMarketData(symbol: string): MarketData {
     try {
       if (!symbol) {
