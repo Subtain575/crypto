@@ -9,6 +9,8 @@ import {
   Req,
   Put,
   BadRequestException,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dtos/register.dto';
@@ -20,6 +22,7 @@ import { UserRole } from './roles.enum';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
@@ -27,6 +30,7 @@ import { UserDetails } from './schema/user.schema';
 import { Request } from 'express';
 import { VerifyEmailDto } from './dtos/verify-email.dto';
 import { ResendOtpDto } from './dtos/resend-otp.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('auth')
 export class AuthController {
@@ -38,8 +42,29 @@ export class AuthController {
       'Use this endpoint to register a new user by providing their details.',
   })
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  @UseInterceptors(FileInterceptor('profileImage'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'User registration with profile image',
+    schema: {
+      type: 'object',
+      properties: {
+        firstName: { type: 'string' },
+        lastName: { type: 'string' },
+        email: { type: 'string', format: 'email' },
+        password: { type: 'string', format: 'password' },
+        profileImage: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  async register(
+    @Body() registerDto: RegisterDto,
+    @UploadedFile() profileImage: Express.Multer.File,
+  ) {
+    return this.authService.register(registerDto, profileImage);
   }
 
   @ApiOperation({
@@ -103,14 +128,31 @@ export class AuthController {
   }
 
   @Put('users/:id')
+  @UseInterceptors(FileInterceptor('profileImage'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Update user details including optional profile image',
+    schema: {
+      type: 'object',
+      properties: {
+        firstName: { type: 'string' },
+        lastName: { type: 'string' },
+        profileImage: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateUserDto,
+    @UploadedFile() profileImage: Express.Multer.File,
     @Req() req: Request & { user: UserDetails },
   ) {
-    return this.authService.update(id, dto, req.user);
+    return this.authService.update(id, dto, req.user, profileImage);
   }
 
   @Delete('users/:id')

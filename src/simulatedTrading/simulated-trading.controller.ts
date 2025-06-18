@@ -38,7 +38,6 @@ export class SimulatedTradingController {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  // 1. BUY API
   @Post('buy')
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard)
@@ -69,7 +68,6 @@ export class SimulatedTradingController {
     );
   }
 
-  // 2. SELL API
   @Post('sell')
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard)
@@ -95,7 +93,6 @@ export class SimulatedTradingController {
     );
   }
 
-  // 3. GET API - Yahan sara enhanced data milega
   @Get('holdings')
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard)

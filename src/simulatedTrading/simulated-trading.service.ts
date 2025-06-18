@@ -68,7 +68,6 @@ export class SimulatedTradingService {
     private readonly userModel: Model<User>,
   ) {}
 
-  // Input validation helper
   private validateTradeInput(
     userId: string,
     symbol: string,
@@ -117,7 +116,7 @@ export class SimulatedTradingService {
 
       const tradeData = {
         user: userId,
-        symbol: symbol.toUpperCase(), // Ensure consistent symbol format
+        symbol: symbol.toUpperCase(),
         quantity,
         type: 'buy',
         price,
@@ -155,7 +154,6 @@ export class SimulatedTradingService {
     }
   }
 
-  // 2. SELL API - Fixed with proper error handling
   async sellSimulated(
     userId: string,
     symbol: string,
@@ -163,10 +161,8 @@ export class SimulatedTradingService {
     price: number,
   ) {
     try {
-      // Validate input
       this.validateTradeInput(userId, symbol, quantity, price);
 
-      // Check if user has sufficient holdings for sell order
       const currentHoldings = await this.getUserCurrentHoldings(userId);
       const holding = currentHoldings.data.find(
         (h) => h.symbol === symbol.toUpperCase(),
@@ -178,7 +174,6 @@ export class SimulatedTradingService {
         );
       }
 
-      // Create trade with error handling
       const trade = await this.tradeModel.create({
         user: userId,
         symbol: symbol.toUpperCase(), // Ensure consistent symbol format
@@ -188,7 +183,6 @@ export class SimulatedTradingService {
         timestamp: new Date(),
       });
 
-      // Add money to wallet
       const wallet = await this.walletModel.findOne({ user: userId });
       if (!wallet) {
         throw new BadRequestException('Wallet not found');
@@ -196,7 +190,6 @@ export class SimulatedTradingService {
       wallet.balance += quantity * price;
       await wallet.save();
 
-      // Check if trade was created successfully
       if (!trade) {
         throw new InternalServerErrorException('Failed to create trade record');
       }
@@ -224,7 +217,6 @@ export class SimulatedTradingService {
     }
   }
 
-  // 3. GET API - Enhanced with all market data and error handling
   async getUserCurrentHoldings(userId: string): Promise<{
     status: number;
     message: string;

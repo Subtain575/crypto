@@ -18,6 +18,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { OtpService } from './otp.service';
 import { EmailService } from './email.service';
 import { Otp, OtpDocument } from './schema/otp.schema';
+import { CloudinaryService } from '../simulatedTrading/cloudinary/cloudinary.service';
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 @Injectable()
@@ -30,11 +31,18 @@ export class AuthService {
     private referralService: ReferralService,
     private otpService: OtpService,
     private readonly emailService: EmailService,
+    private readonly cloudinaryService: CloudinaryService,
     @InjectModel(Otp.name)
     private otpModel: Model<OtpDocument>,
   ) {}
 
-  async register(registerDto: RegisterDto) {
+  async register(registerDto: RegisterDto, profileImage?: Express.Multer.File) {
+    if (profileImage) {
+      const uploadResult = (await this.cloudinaryService.uploadImage(
+        profileImage,
+      )) as { secure_url: string };
+      registerDto.profileImage = uploadResult.secure_url;
+    }
     const user = await this.referralService.registerWithReferral(registerDto);
 
     if (!user) {
@@ -61,6 +69,7 @@ export class AuthService {
         lastName: user.lastName,
         role: user.role,
         referralCode: user.referralCode,
+        profileImage: user.profileImage,
       },
     };
   }
@@ -252,6 +261,7 @@ export class AuthService {
     id: string,
     updateUserDto: UpdateUserDto,
     currentUser: UserDetails,
+    profileImage?: Express.Multer.File,
   ): Promise<UserDocument> {
     const isAdmin = currentUser.role === 'admin';
     const isSelf = currentUser.sub === id;
@@ -259,9 +269,23 @@ export class AuthService {
     if (!isAdmin && !isSelf) {
       throw new UnauthorizedException('Access denied');
     }
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
 
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+    if (profileImage) {
+      // 🗑️ Delete old image from Cloudinary
+      if (user.profileImage) {
+        const publicId = this.extractPublicIdFromUrl(user.profileImage);
+        if (publicId) {
+          await this.cloudinaryService.deleteImage(publicId);
+        }
+      }
+      const uploaded = (await this.cloudinaryService.uploadImage(
+        profileImage,
+      )) as { secure_url: string };
+      updateUserDto.profileImage = uploaded.secure_url;
     }
 
     const updatedUser = await this.userModel
@@ -274,6 +298,16 @@ export class AuthService {
     }
 
     return updatedUser;
+  }
+
+  private extractPublicIdFromUrl(url: string): string | null {
+    try {
+      const urlParts = url.split('/');
+      const filename = urlParts[urlParts.length - 1];
+      return filename.split('.')[0];
+    } catch {
+      return null;
+    }
   }
 
   async delete(id: string, currentUser: UserDetails): Promise<UserDocument> {

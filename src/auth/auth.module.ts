@@ -15,6 +15,8 @@ import { OtpService } from './otp.service';
 import { Otp } from './schema/otp.schema';
 import { OtpSchema } from './schema/otp.schema';
 import { EmailModule } from './email.module';
+import { CloudinaryModule } from '../simulatedTrading/cloudinary/cloudinary.module';
+
 @Module({
   imports: [
     ConfigModule,
@@ -32,6 +34,7 @@ import { EmailModule } from './email.module';
     WalletModule,
     ReferralModule,
     EmailModule,
+    CloudinaryModule,
   ],
   providers: [AuthService, JwtStrategy, OtpService],
   controllers: [AuthController],
