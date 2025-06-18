@@ -13,6 +13,10 @@ import {
 import { CreateCourseDto } from './dto/create-course.dto';
 import { TrackProgressDto } from './dto/track-progress.dto';
 import { Module, ModuleDocument } from './schemas/module.schema';
+import {
+  DailyWatchStreak,
+  DailyWatchStreakDocument,
+} from './schemas/daily-watch-streak.schema';
 
 @Injectable()
 export class CourseService {
@@ -23,6 +27,8 @@ export class CourseService {
     private progressModel: Model<CourseProgressDocument>,
     @InjectModel(Module.name)
     private moduleModel: Model<ModuleDocument>,
+    @InjectModel(DailyWatchStreak.name)
+    private dailyWatchStreakModel: Model<DailyWatchStreakDocument>,
   ) {}
 
   async getAllCourses() {
@@ -104,5 +110,48 @@ export class CourseService {
 
     await progress.save();
     return progress;
+  }
+  async handleDailyWatch(userId: string) {
+    const today = new Date();
+    const todayStart = new Date(today.setHours(0, 0, 0, 0));
+    const todayEnd = new Date(today.setHours(23, 59, 59, 999));
+
+    const userObjectId = new Types.ObjectId(userId);
+
+    let streak = await this.dailyWatchStreakModel.findOne({
+      user: userObjectId,
+    });
+
+    if (!streak) {
+      streak = new this.dailyWatchStreakModel({
+        user: userObjectId,
+        count: 1,
+        lastWatchedDate: new Date(),
+      });
+      await streak.save();
+      return { message: 'First video watched. Streak started.', count: 1 };
+    }
+
+    const lastWatched = streak.lastWatchedDate;
+    const now = new Date();
+
+    const diffInMs = now.getTime() - lastWatched.getTime();
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+
+    if (lastWatched >= todayStart && lastWatched <= todayEnd) {
+      return { message: 'Already watched video today.', count: streak.count };
+    }
+
+    if (diffInHours <= 48 && diffInHours >= 24) {
+      streak.count += 1;
+      streak.lastWatchedDate = new Date();
+      await streak.save();
+      return { message: 'Streak continued.', count: streak.count };
+    }
+
+    streak.count = 1;
+    streak.lastWatchedDate = new Date();
+    await streak.save();
+    return { message: 'Streak reset. Starting again.', count: streak.count };
   }
 }

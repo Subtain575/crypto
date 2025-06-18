@@ -1,4 +1,3 @@
-// src/course/course.module.ts
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CourseController } from './course.controller';
@@ -12,6 +11,10 @@ import {
   Module as ModuleSchema,
   ModuleSchema as ModuleSchemaClass,
 } from './schemas/module.schema';
+import {
+  DailyWatchStreak,
+  DailyWatchStreakSchema,
+} from './schemas/daily-watch-streak.schema';
 
 @Module({
   imports: [
@@ -19,6 +22,7 @@ import {
       { name: Course.name, schema: CourseSchema },
       { name: CourseProgress.name, schema: CourseProgressSchema },
       { name: ModuleSchema.name, schema: ModuleSchemaClass },
+      { name: DailyWatchStreak.name, schema: DailyWatchStreakSchema },
     ]),
   ],
   controllers: [CourseController],
