@@ -16,6 +16,7 @@ import { Otp } from './schema/otp.schema';
 import { OtpSchema } from './schema/otp.schema';
 import { EmailModule } from './email.module';
 import { CloudinaryModule } from '../simulatedTrading/cloudinary/cloudinary.module';
+import { NotificationModule } from '../notifications/notification.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { CloudinaryModule } from '../simulatedTrading/cloudinary/cloudinary.modu
     ReferralModule,
     EmailModule,
     CloudinaryModule,
+    NotificationModule,
   ],
   providers: [AuthService, JwtStrategy, OtpService],
   controllers: [AuthController],

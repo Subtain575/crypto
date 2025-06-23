@@ -34,4 +34,17 @@ export class EmailService {
       throw new Error(`Failed to send email: ${errorMessage}`);
     }
   }
+
+  async sendAdminNotificationEmail(
+    title: string,
+    message: string,
+  ): Promise<void> {
+    const adminEmail = 'subtain7723@gmail.com'; // Replace with actual admin email or config
+    await this.mailerService.sendMail({
+      to: adminEmail,
+      subject: `Admin Notification: ${title}`,
+      text: message,
+      html: `<p>${message}</p>`,
+    });
+  }
 }

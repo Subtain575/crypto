@@ -21,6 +21,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { EmailModule } from './auth/email.module';
 import { CloudinaryModule } from './simulatedTrading/cloudinary/cloudinary.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { NotificationModule } from './notifications/notification.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { MulterModule } from '@nestjs/platform-express';
     AnalyticsModule,
     EmailModule,
     CloudinaryModule,
+    NotificationModule,
   ],
   controllers: [],
   providers: [],

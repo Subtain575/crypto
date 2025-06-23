@@ -19,6 +19,7 @@ import { OtpService } from './otp.service';
 import { EmailService } from './email.service';
 import { Otp, OtpDocument } from './schema/otp.schema';
 import { CloudinaryService } from '../simulatedTrading/cloudinary/cloudinary.service';
+import { NotificationService } from '../notifications/notification.service';
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 @Injectable()
@@ -32,6 +33,8 @@ export class AuthService {
     private otpService: OtpService,
     private readonly emailService: EmailService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly notificationService: NotificationService,
+
     @InjectModel(Otp.name)
     private otpModel: Model<OtpDocument>,
   ) {}
@@ -58,6 +61,13 @@ export class AuthService {
     await this.otpService.generateOtp(user.email);
 
     const token = this.generateToken(user);
+
+    await this.notificationService.createNotification(
+      'New User Registered',
+      `${user.firstName} ${user.lastName} has registered with email ${user.email}`,
+      'register',
+      user._id.toString(),
+    );
 
     return {
       message: 'User registered successfully. OTP sent to email.',
@@ -326,6 +336,13 @@ export class AuthService {
     if (!deletedUser) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+
+    await this.notificationService.createNotification(
+      'User Deleted',
+      `${deletedUser.firstName} ${deletedUser.lastName} deleted their account (${deletedUser.email})`,
+      'user_deleted',
+      deletedUser._id.toString(),
+    );
 
     return deletedUser;
   }

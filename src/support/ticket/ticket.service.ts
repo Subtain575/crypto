@@ -1,17 +1,19 @@
 // src/ticket/ticket.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Ticket } from './schemas/ticket.schema';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketStatus } from './enum/ticket-status.enum';
+import { NotificationService } from '../../notifications/notification.service';
 
 @Injectable()
 export class TicketService {
   constructor(
     @InjectModel(Ticket.name)
     private ticketModel: Model<Ticket>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(createTicketDto: CreateTicketDto, userId: string) {
@@ -19,7 +21,18 @@ export class TicketService {
       ...createTicketDto,
       userId,
     };
-    return this.ticketModel.create(ticketData);
+
+    const newTicket = await this.ticketModel.create(ticketData);
+
+    await this.notificationService.createNotification(
+      'New Ticket Created',
+      `User with ID ${userId} created a new support ticket: ${createTicketDto.subject}`,
+      'ticket',
+      userId,
+      (newTicket._id as Types.ObjectId).toString(),
+    );
+
+    return newTicket;
   }
 
   async findAll(status?: TicketStatus) {
