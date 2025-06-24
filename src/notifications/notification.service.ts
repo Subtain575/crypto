@@ -33,7 +33,8 @@ export class NotificationService {
     await this.emailService.sendAdminNotificationEmail(title, message);
   }
 
-  async getAll() {
-    return this.notificationModel.find().sort({ createdAt: -1 }).lean();
+  async getAll(user: { _id: string; role: string }) {
+    const query = user.role === 'admin' ? {} : { userId: user._id };
+    return this.notificationModel.find(query).sort({ createdAt: -1 }).lean();
   }
 }

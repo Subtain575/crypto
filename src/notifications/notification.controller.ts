@@ -1,7 +1,6 @@
 // src/notifications/notification.controller.ts
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { NotificationService } from './notification.service';
-import { Roles } from '../auth/decorators/roles.decorator';
 import {
   ApiBearerAuth,
   ApiOkResponse,
@@ -10,7 +9,6 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { UserRole } from '../auth/enums/user-role.enum';
 import { NotificationResponseDto } from './dto/notification.dto';
 
 @ApiTags('Notifications')
@@ -20,15 +18,17 @@ export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
   @Get()
-  @Roles(UserRole.ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOkResponse({
     description: 'Get all notifications',
     type: NotificationResponseDto,
     isArray: true,
   })
-  @ApiOperation({ summary: 'Get all notifications' })
-  async getAllNotifications() {
-    return this.notificationService.getAll();
+  @ApiOperation({ summary: 'Get all notifications for the logged-in user' })
+  async getAllNotifications(
+    @Req() req: Request & { user: { _id: string; role: string } },
+  ) {
+    const user = req.user;
+    return this.notificationService.getAll(user);
   }
 }
