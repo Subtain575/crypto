@@ -27,7 +27,7 @@ import { NotificationModule } from '../notifications/notification.module';
       inject: [ConfigService],
       useFactory: (cs: ConfigService) => ({
         secret: cs.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '60s' },
+        signOptions: { expiresIn: '48h' },
       }),
     }),
     MongooseModule.forFeature([{ name: Otp.name, schema: OtpSchema }]),
