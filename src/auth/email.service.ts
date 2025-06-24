@@ -39,12 +39,27 @@ export class EmailService {
     title: string,
     message: string,
   ): Promise<void> {
-    const adminEmail = 'subtain7723@gmail.com'; // Replace with actual admin email or config
+    const adminEmail = 'subtain7723@gmail.com';
     await this.mailerService.sendMail({
       to: adminEmail,
       subject: `Admin Notification: ${title}`,
       text: message,
       html: `<p>${message}</p>`,
+    });
+  }
+  async sendEmail({
+    to,
+    subject,
+    html,
+  }: {
+    to: string;
+    subject: string;
+    html: string;
+  }) {
+    await this.mailerService.sendMail({
+      to,
+      subject,
+      html,
     });
   }
 }

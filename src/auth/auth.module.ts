@@ -1,4 +1,3 @@
-// src/auth/auth.module.ts
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
@@ -28,7 +27,7 @@ import { NotificationModule } from '../notifications/notification.module';
       inject: [ConfigService],
       useFactory: (cs: ConfigService) => ({
         secret: cs.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '48h' },
+        signOptions: { expiresIn: '60s' },
       }),
     }),
     MongooseModule.forFeature([{ name: Otp.name, schema: OtpSchema }]),

@@ -1,4 +1,3 @@
-// src/notification/notification.service.ts
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -31,7 +30,6 @@ export class NotificationService {
       ticketId,
     });
 
-    // Email Admin
     await this.emailService.sendAdminNotificationEmail(title, message);
   }
 
