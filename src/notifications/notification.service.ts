@@ -33,19 +33,19 @@ export class NotificationService {
     await this.emailService.sendAdminNotificationEmail(title, message);
   }
 
-  async getAll(user: { _id: string; role: string }) {
-    const query = user.role === 'admin' ? {} : { userId: user._id };
+  async getAll(user: { sub: string; role: string }) {
+    const query = user.role === 'admin' ? {} : { userId: user.sub };
     return this.notificationModel.find(query).sort({ createdAt: -1 }).lean();
   }
-  async countUnseenNotifications(user: { _id: string; role: string }) {
-    const query = { userId: user._id, isRead: false };
+  async countUnseenNotifications(user: { sub: string; role: string }) {
+    const query = { userId: user.sub, isRead: false };
     return this.notificationModel.countDocuments(query);
   }
 
-  async markAsSeen(userId: string) {
+  async markAsSeen(user: { sub: string }) {
     return await this.notificationModel.updateMany(
       {
-        userId: userId,
+        userId: user.sub,
         isSeen: false,
       },
       { isSeen: true },

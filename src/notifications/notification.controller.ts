@@ -26,19 +26,19 @@ export class NotificationController {
   })
   @ApiOperation({ summary: 'Get all notifications for the logged-in user' })
   async getAllNotifications(
-    @Req() req: Request & { user: { _id: string; role: string } },
+    @Req() req: Request & { user: { sub: string; role: string } },
   ) {
-    const user = req.user;
-    return this.notificationService.getAll(user);
+    return this.notificationService.getAll(req.user);
   }
   @Get('/unseen-count')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get count of unseen notifications' })
   async getUnseenNotificationCount(
-    @Req() req: Request & { user: { _id: string; role: string } },
+    @Req() req: Request & { user: { sub: string; role: string } },
   ) {
-    const user = req.user;
-    const count = await this.notificationService.countUnseenNotifications(user);
+    const count = await this.notificationService.countUnseenNotifications(
+      req.user,
+    );
     return { unseenCount: count };
   }
 
@@ -48,7 +48,6 @@ export class NotificationController {
   async markNotificationAsSeen(
     @Req() req: Request & { user: { sub: string } },
   ) {
-    console.log('ME neiten yaho hoo ', req.user);
-    return this.notificationService.markAsSeen(req.user.sub);
+    return this.notificationService.markAsSeen(req.user);
   }
 }
