@@ -4,9 +4,6 @@ import { ReplyService } from './reply.service';
 import { CreateReplyDto } from './dto/create-reply.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { Roles } from '../../auth/decorators/roles.decorator';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { UserRole } from '../../auth/enums/user-role.enum';
 
 @Controller('replies')
 export class ReplyController {
@@ -14,8 +11,7 @@ export class ReplyController {
 
   @Post()
   @ApiBearerAuth('JWT-auth')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard)
   create(@Body() dto: CreateReplyDto) {
     return this.replyService.create(dto);
   }
