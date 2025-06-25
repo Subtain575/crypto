@@ -51,6 +51,13 @@ export class Notification extends Document {
   isRead: boolean;
 
   @ApiProperty({
+    example: false,
+    description: 'Whether the notification has been seen or not',
+  })
+  @Prop({ default: false })
+  isSeen: boolean;
+
+  @ApiProperty({
     example: '2025-06-20T14:11:51.613Z',
     description: 'Date of creation',
   })

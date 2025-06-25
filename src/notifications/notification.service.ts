@@ -37,4 +37,18 @@ export class NotificationService {
     const query = user.role === 'admin' ? {} : { userId: user._id };
     return this.notificationModel.find(query).sort({ createdAt: -1 }).lean();
   }
+  async countUnseenNotifications(user: { _id: string; role: string }) {
+    const query = { userId: user._id, isRead: false };
+    return this.notificationModel.countDocuments(query);
+  }
+
+  async markAsSeen(userId: string) {
+    return await this.notificationModel.updateMany(
+      {
+        userId: userId,
+        isSeen: false,
+      },
+      { isSeen: true },
+    );
+  }
 }

@@ -1,5 +1,5 @@
 // src/notifications/notification.controller.ts
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import {
   ApiBearerAuth,
@@ -30,5 +30,25 @@ export class NotificationController {
   ) {
     const user = req.user;
     return this.notificationService.getAll(user);
+  }
+  @Get('/unseen-count')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get count of unseen notifications' })
+  async getUnseenNotificationCount(
+    @Req() req: Request & { user: { _id: string; role: string } },
+  ) {
+    const user = req.user;
+    const count = await this.notificationService.countUnseenNotifications(user);
+    return { unseenCount: count };
+  }
+
+  @Patch('/seen')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Mark notifications as seen' })
+  async markNotificationAsSeen(
+    @Req() req: Request & { user: { sub: string } },
+  ) {
+    console.log('ME neiten yaho hoo ', req.user);
+    return this.notificationService.markAsSeen(req.user.sub);
   }
 }
