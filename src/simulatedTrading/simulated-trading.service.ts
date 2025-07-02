@@ -227,6 +227,16 @@ export class SimulatedTradingService {
         throw new BadRequestException('User ID is required');
       }
 
+      const latestBuyTimestamps = await this.tradeModel.aggregate([
+        { $match: { user: userId, type: 'buy' } },
+        {
+          $group: {
+            _id: '$symbol',
+            latestBuyTime: { $max: '$timestamp' },
+          },
+        },
+      ]);
+
       const basicHoldings = await this.tradeModel.aggregate<BasicHolding>([
         { $match: { user: userId } },
         {
@@ -264,7 +274,26 @@ export class SimulatedTradingService {
           },
         },
         {
-          $sort: { holding: -1 },
+          $addFields: {
+            latestBuyTime: {
+              $let: {
+                vars: {
+                  symbolMatch: {
+                    $filter: {
+                      input: latestBuyTimestamps,
+                      as: 'ts',
+                      cond: { $eq: ['$$ts._id', '$symbol'] },
+                    },
+                  },
+                },
+                in: { $arrayElemAt: ['$$symbolMatch.latestBuyTime', 0] },
+              },
+            },
+          },
+        },
+        // Sort by latest buy time (newest first)
+        {
+          $sort: { latestBuyTime: -1 },
         },
       ]);
 
