@@ -332,6 +332,23 @@ export class AuthService {
       throw new UnauthorizedException('You can only delete your own account');
     }
 
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    if (user.profileImage) {
+      try {
+        const publicId = this.extractPublicIdFromUrl(user.profileImage);
+        if (publicId) {
+          await this.cloudinaryService.deleteImage(publicId);
+        }
+      } catch (error) {
+        console.error('Failed to delete Cloudinary image:', error);
+        // Continue with user deletion even if image deletion fails
+      }
+    }
+
     const deletedUser = await this.userModel
       .findByIdAndDelete(id)
       .select('-password')
