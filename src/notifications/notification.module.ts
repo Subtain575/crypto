@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Notification, NotificationSchema } from './schema/notification.schema';
 import { NotificationService } from './notification.service';
-import { EmailService } from '../auth/email.service';
-import { MailerModule } from '@nestjs-modules/mailer';
 import { NotificationController } from './notification.controller';
+import { EmailModule } from '../auth/email.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -12,8 +12,9 @@ import { NotificationController } from './notification.controller';
       { name: Notification.name, schema: NotificationSchema },
     ]),
     MailerModule,
+    EmailModule,
   ],
-  providers: [NotificationService, EmailService],
+  providers: [NotificationService],
   exports: [NotificationService],
   controllers: [NotificationController],
 })

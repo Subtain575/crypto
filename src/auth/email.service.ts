@@ -1,11 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { Model } from 'mongoose';
+import { User } from './schema/user.schema';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
 
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(
+    private readonly mailerService: MailerService,
+    @InjectModel(User.name)
+    private userModel: Model<User>,
+  ) {}
 
   async sendEmailOtp(email: string, otp: string): Promise<void> {
     try {
@@ -39,14 +46,35 @@ export class EmailService {
     title: string,
     message: string,
   ): Promise<void> {
-    const adminEmail = 'subtain7723@gmail.com';
-    await this.mailerService.sendMail({
-      to: adminEmail,
-      subject: `Admin Notification: ${title}`,
-      text: message,
-      html: `<p>${message}</p>`,
-    });
+    try {
+      // Get all admin emails from database
+      const adminEmails = await this.userModel
+        .find({ role: 'admin' })
+        .select('email')
+        .lean();
+
+      if (adminEmails.length === 0) {
+        this.logger.warn('No admin users found to send notification to');
+        return;
+      }
+
+      // Send to all admins
+      await this.mailerService.sendMail({
+        to: adminEmails.map((admin: { email: string }) => admin.email),
+        subject: `Admin Notification: ${title}`,
+        text: message,
+        html: `<p>${message}</p>`,
+      });
+
+      this.logger.log(
+        `Admin notification sent to ${adminEmails.length} admins`,
+      );
+    } catch (error) {
+      this.logger.error('Failed to send admin notification', error);
+      // Don't throw so it doesn't block the notification creation
+    }
   }
+
   async sendEmail({
     to,
     subject,

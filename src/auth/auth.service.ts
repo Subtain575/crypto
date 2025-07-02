@@ -248,7 +248,11 @@ export class AuthService {
       throw new UnauthorizedException('Only admin can access all users');
     }
 
-    return this.userModel.find().select('-password').exec();
+    return this.userModel
+      .find()
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .exec();
   }
 
   async findOne(id: string, currentUser: UserDetails): Promise<UserDocument> {
