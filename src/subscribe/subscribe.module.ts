@@ -9,6 +9,7 @@ import {
   SubscriptionSchema,
 } from './schemas/subscription.schema';
 import { Product, ProductSchema } from './schemas/product.schema';
+import { Course, CourseSchema } from '../course-module/schemas/course.schema';
 
 @Module({
   imports: [
@@ -16,9 +17,11 @@ import { Product, ProductSchema } from './schemas/product.schema';
       { name: User.name, schema: UserSchema },
       { name: Subscription.name, schema: SubscriptionSchema },
       { name: Product.name, schema: ProductSchema },
+      { name: Course.name, schema: CourseSchema },
     ]),
   ],
   controllers: [SubscriptionController],
   providers: [StripeService, SubscribeService],
+  exports: [StripeService],
 })
 export class SubscribeModule {}

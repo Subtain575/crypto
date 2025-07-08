@@ -1,13 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Course } from '../course-module/schemas/course.schema';
 
 @Injectable()
 export class StripeService {
   private readonly stripe: Stripe;
   private readonly logger = new Logger(StripeService.name);
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @InjectModel(Course.name) private readonly courseModel: Model<Course>,
+  ) {
     const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
     if (!stripeKey) {
       throw new Error(
@@ -177,5 +183,36 @@ export class StripeService {
       this.logger.error('Failed to verify webhook signature', msg);
       throw new Error(`Webhook verification failed: ${msg}`);
     }
+  }
+  async createCourseCheckoutSession(userId: string, courseId: string) {
+    const course = await this.courseModel.findById(courseId);
+    if (!course) {
+      throw new Error('Course not found');
+    }
+
+    const session = await this.stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: course.title,
+            },
+            unit_amount: course.price, // 2000 for $20
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `https://your-frontend.com/success?courseId=${courseId}`,
+      cancel_url: `https://your-frontend.com/cancel`,
+      metadata: {
+        courseId,
+        userId,
+      },
+    });
+
+    return { url: session.url };
   }
 }

@@ -25,6 +25,12 @@ export class Course {
   @Prop({ type: Boolean, default: false })
   isPublished: boolean;
 
+  @Prop({ default: false })
+  isPaid: boolean;
+
+  @Prop({ default: 2000 }) // amount in cents
+  price: number;
+
   @Prop({ type: String, enum: ['free', 'basic', 'premium'], default: 'free' })
   requiredSubscription: string;
 
