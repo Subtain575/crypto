@@ -1,7 +1,6 @@
 import {
   Logger,
   OnModuleInit,
-  MiddlewareConsumer,
   Module,
   OnApplicationBootstrap,
 } from '@nestjs/common';
@@ -11,8 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { TicketModule } from './support/ticket/ticket.module';
 import { ReplyModule } from './support/reply/reply.module';
 import { CourseModule } from './course-module/course.module';
-import { SubscribeModule } from './subscribe/subscribe.module';
-import { RawBodyMiddleware } from './subscribe/middelwares/raw-body.middelware';
+import { SubscribeModule } from './subscribe/stripe.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { WalletModule } from './wallet/wallet.module';
 import { ReferralModule } from './referralSystem/referral.module';
@@ -76,9 +74,5 @@ export class AppModule implements OnApplicationBootstrap, OnModuleInit {
   onApplicationBootstrap() {
     this.logger.log('Application bootstrap completed.');
     // this.logger.log(EventCollector.getEvents());
-  }
-
-  configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RawBodyMiddleware).forRoutes('/subscription/webhook');
   }
 }

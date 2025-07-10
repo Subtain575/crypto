@@ -26,8 +26,6 @@ import { UserRole } from '../auth/enums/user-role.enum';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { Types } from 'mongoose';
-import { StripeService } from '../subscribe/stripe.service';
-import { BuyCourseDto } from './dto/buy.dto';
 
 export interface RequestWithUser extends Request {
   user: {
@@ -42,10 +40,7 @@ export interface RequestWithUser extends Request {
 @ApiBearerAuth()
 @Controller('courses')
 export class CourseController {
-  constructor(
-    private readonly courseService: CourseService,
-    private readonly stripeService: StripeService,
-  ) {}
+  constructor(private readonly courseService: CourseService) {}
 
   @Get()
   @ApiBearerAuth('JWT-auth')
@@ -119,15 +114,5 @@ export class CourseController {
     @GetUser() user: { _id: string },
   ) {
     return this.courseService.handleDailyWatch(user._id);
-  }
-
-  @Post('buy')
-  @ApiBearerAuth('JWT-auth')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  async buyCourse(@Body() dto: BuyCourseDto) {
-    return this.stripeService.createCourseCheckoutSession(
-      dto.userId,
-      dto.courseId,
-    );
   }
 }

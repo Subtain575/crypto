@@ -9,6 +9,7 @@ import { SimulatedTrade } from './schema/simulatedTrade.schema';
 import { SimulatedPortfolio } from './schema/simulated-portfolio.schema';
 import { Wallet } from '../wallet/schema/wallet.schema';
 import { User } from '../auth/schema/user.schema';
+import { NotificationService } from '../notifications/notification.service';
 
 interface MarketData {
   priceChange: string;
@@ -66,6 +67,7 @@ export class SimulatedTradingService {
     private readonly walletModel: Model<Wallet>,
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   private validateTradeInput(
@@ -130,6 +132,12 @@ export class SimulatedTradingService {
         throw new InternalServerErrorException('Failed to create trade record');
       }
 
+      await this.notificationService.createNotification(
+        userId,
+        'Buy Order Executed',
+        `You have successfully purchased ${quantity} ${symbol.toUpperCase()} at $${price.toFixed(2)}.`,
+      );
+
       return {
         symbol: trade.symbol,
         quantity: trade.quantity,
@@ -193,6 +201,12 @@ export class SimulatedTradingService {
       if (!trade) {
         throw new InternalServerErrorException('Failed to create trade record');
       }
+
+      await this.notificationService.createNotification(
+        userId,
+        'Sell Order Executed',
+        `You have successfully sold ${quantity} ${symbol.toUpperCase()} at $${price.toFixed(2)}.`,
+      );
 
       return {
         symbol: trade.symbol,

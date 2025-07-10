@@ -15,7 +15,6 @@ import {
   DailyWatchStreak,
   DailyWatchStreakSchema,
 } from './schemas/daily-watch-streak.schema';
-import { SubscribeModule } from '../subscribe/subscribe.module';
 
 @Module({
   imports: [
@@ -25,7 +24,6 @@ import { SubscribeModule } from '../subscribe/subscribe.module';
       { name: ModuleSchema.name, schema: ModuleSchemaClass },
       { name: DailyWatchStreak.name, schema: DailyWatchStreakSchema },
     ]),
-    SubscribeModule,
   ],
   controllers: [CourseController],
   providers: [CourseService],
