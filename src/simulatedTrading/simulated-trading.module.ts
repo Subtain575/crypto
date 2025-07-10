@@ -14,7 +14,7 @@ import { WalletModule } from '../wallet/wallet.module';
 import { Wallet, WalletSchema } from '../wallet/schema/wallet.schema';
 import { User, UserSchema } from '../auth/schema/user.schema';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
-import { NotificationModule } from '@/notifications/notification.module';
+import { NotificationModule } from '../notifications/notification.module';
 
 @Module({
   imports: [
