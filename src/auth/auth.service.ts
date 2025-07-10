@@ -20,6 +20,8 @@ import { EmailService } from './email.service';
 import { Otp, OtpDocument } from './schema/otp.schema';
 import { CloudinaryService } from '../simulatedTrading/cloudinary/cloudinary.service';
 import { NotificationService } from '../notifications/notification.service';
+import { StripeService } from '../subscribe/stripe.service';
+
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 @Injectable()
@@ -34,6 +36,7 @@ export class AuthService {
     private readonly emailService: EmailService,
     private readonly cloudinaryService: CloudinaryService,
     private readonly notificationService: NotificationService,
+    private readonly stripeService: StripeService,
 
     @InjectModel(Otp.name)
     private otpModel: Model<OtpDocument>,
@@ -58,6 +61,11 @@ export class AuthService {
       wallet: wallet._id,
     });
 
+    const { clientSecret } = await this.stripeService.chargeRegistrationFee(
+      user._id.toString(),
+      user.email,
+    );
+
     await this.otpService.generateOtp(user.email);
 
     const token = this.generateToken(user);
@@ -72,6 +80,7 @@ export class AuthService {
     return {
       message: 'User registered successfully. OTP sent to email.',
       token,
+      clientSecret,
       user: {
         id: user._id,
         email: user.email,

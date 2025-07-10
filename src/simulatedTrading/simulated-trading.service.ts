@@ -133,11 +133,11 @@ export class SimulatedTradingService {
       }
 
       await this.notificationService.createNotification(
-        userId,
-        'Buy Order Executed',
-        `You have successfully purchased ${quantity} ${symbol.toUpperCase()} at $${price.toFixed(2)}.`,
+        'Buy Order Executed', // title
+        `You have successfully purchased ${quantity} ${symbol.toUpperCase()} at $${price.toFixed(2)}.`, // message
+        'trade', // type
+        userId, // userId
       );
-
       return {
         symbol: trade.symbol,
         quantity: trade.quantity,
@@ -203,9 +203,10 @@ export class SimulatedTradingService {
       }
 
       await this.notificationService.createNotification(
-        userId,
-        'Sell Order Executed',
-        `You have successfully sold ${quantity} ${symbol.toUpperCase()} at $${price.toFixed(2)}.`,
+        'Sell Order Executed', // title
+        `You have successfully sold ${quantity} ${symbol.toUpperCase()} at $${price.toFixed(2)}.`, // message
+        'trade', // type
+        userId, // userId
       );
 
       return {

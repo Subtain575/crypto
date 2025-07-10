@@ -24,6 +24,7 @@ export class NotificationService {
     userId?: string,
     ticketId?: string,
   ) {
+    // this.logger.log(`Creating notification for user ${userId}`);
     const notification = await this.notificationModel.create({
       title,
       message,
@@ -32,6 +33,7 @@ export class NotificationService {
       ticketId,
     });
 
+    // this.logger.log(`Notification created: ${JSON.stringify(notification)}`);
     try {
       await this.emailService.sendAdminNotificationEmail(title, message);
     } catch (error) {

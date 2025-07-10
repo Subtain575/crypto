@@ -3,7 +3,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
 import { User, UserSchema } from './schema/user.schema';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
@@ -16,6 +15,7 @@ import { OtpSchema } from './schema/otp.schema';
 import { EmailModule } from './email.module';
 import { CloudinaryModule } from '../simulatedTrading/cloudinary/cloudinary.module';
 import { NotificationModule } from '../notifications/notification.module';
+import { StripeService } from '../subscribe/stripe.service';
 
 @Module({
   imports: [
@@ -37,7 +37,7 @@ import { NotificationModule } from '../notifications/notification.module';
     CloudinaryModule,
     NotificationModule,
   ],
-  providers: [AuthService, JwtStrategy, OtpService],
+  providers: [AuthService, JwtStrategy, OtpService, StripeService],
   controllers: [AuthController],
   exports: [PassportModule, JwtModule, OtpService],
 })

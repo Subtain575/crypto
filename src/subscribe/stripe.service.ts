@@ -14,37 +14,26 @@ export class StripeService {
     });
   }
 
-  async createPaymentSheet(
-    customerId: string,
-    amount: number,
-    courseId: string,
-    userId: string,
-  ) {
-    const ephemeralKey = await this.stripe.ephemeralKeys.create(
-      { customer: customerId },
-      { apiVersion: '2024-04-10' },
-    );
+  // stripe.service.ts
+  async chargeRegistrationFee(userId: string, email: string) {
+    // 1. Create Stripe customer if needed
+    const customer = await this.stripe.customers.create({
+      email,
+      metadata: { userId },
+    });
 
+    // 2. Create a PaymentIntent for $20
     const paymentIntent = await this.stripe.paymentIntents.create({
-      amount,
+      amount: 2000,
       currency: 'usd',
-      customer: customerId,
+      customer: customer.id,
       automatic_payment_methods: { enabled: true },
-      metadata: {
-        courseId,
-        userId,
-      },
+      metadata: { userId },
     });
 
     return {
-      paymentIntent: paymentIntent.client_secret,
-      ephemeralKey: ephemeralKey.secret,
-      customer: customerId,
+      clientSecret: paymentIntent.client_secret,
+      customerId: customer.id,
     };
-  }
-
-  async createCustomer(email: string) {
-    const customer = await this.stripe.customers.create({ email });
-    return customer.id;
   }
 }
