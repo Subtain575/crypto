@@ -43,6 +43,19 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto, profileImage?: Express.Multer.File) {
+    if (!registerDto.paymentIntentId) {
+      throw new BadRequestException(
+        'Payment intent ID is required for registration',
+      );
+    }
+    const isPaymentComplete = await this.stripeService.verifyPayment(
+      registerDto.paymentIntentId,
+    );
+
+    if (!isPaymentComplete) {
+      throw new BadRequestException('Payment not completed');
+    }
+
     if (profileImage) {
       const uploadResult = (await this.cloudinaryService.uploadImage(
         profileImage,

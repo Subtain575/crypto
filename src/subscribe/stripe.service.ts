@@ -36,4 +36,10 @@ export class StripeService {
       customerId: customer.id,
     };
   }
+  // stripe.service.ts
+  async verifyPayment(paymentIntentId: string): Promise<boolean> {
+    const paymentIntent =
+      await this.stripe.paymentIntents.retrieve(paymentIntentId);
+    return paymentIntent.status === 'succeeded';
+  }
 }
