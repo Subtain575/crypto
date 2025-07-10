@@ -63,8 +63,14 @@ export class User {
   @Prop({ default: false })
   isReferred: boolean;
 
+  @Prop({ default: false })
+  hasPaid: boolean;
+
   @Prop({ default: 'pending' })
   paymentStatus: 'pending' | 'paid' | 'failed';
+
+  @Prop({ required: false })
+  paymentIntentId?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

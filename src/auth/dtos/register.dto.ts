@@ -8,9 +8,6 @@ import {
 } from 'class-validator';
 
 export class RegisterDto {
-  @IsNotEmpty()
-  paymentIntentId: string;
-
   @ApiProperty()
   @IsNotEmpty()
   @IsString()

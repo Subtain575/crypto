@@ -42,4 +42,37 @@ export class StripeService {
       await this.stripe.paymentIntents.retrieve(paymentIntentId);
     return paymentIntent.status === 'succeeded';
   }
+
+  async createRegistrationPaymentIntent(
+    userId: string,
+    email: string,
+  ): Promise<{ clientSecret: string; paymentIntentId: string }> {
+    // Create Stripe customer if needed
+    const customer = await this.stripe.customers.create({
+      email,
+      metadata: { userId },
+    });
+
+    // Create a PaymentIntent for $20
+    const paymentIntent = await this.stripe.paymentIntents.create({
+      amount: 2000,
+      currency: 'usd',
+      customer: customer.id,
+      automatic_payment_methods: { enabled: true },
+      metadata: { userId },
+    });
+
+    return {
+      clientSecret: paymentIntent.client_secret!,
+      paymentIntentId: paymentIntent.id,
+    };
+  }
+
+  async retrievePaymentIntent(
+    paymentIntentId: string,
+  ): Promise<{ clientSecret: string }> {
+    const paymentIntent =
+      await this.stripe.paymentIntents.retrieve(paymentIntentId);
+    return { clientSecret: paymentIntent.client_secret! };
+  }
 }

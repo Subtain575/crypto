@@ -43,19 +43,6 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto, profileImage?: Express.Multer.File) {
-    if (!registerDto.paymentIntentId) {
-      throw new BadRequestException(
-        'Payment intent ID is required for registration',
-      );
-    }
-    const isPaymentComplete = await this.stripeService.verifyPayment(
-      registerDto.paymentIntentId,
-    );
-
-    if (!isPaymentComplete) {
-      throw new BadRequestException('Payment not completed');
-    }
-
     if (profileImage) {
       const uploadResult = (await this.cloudinaryService.uploadImage(
         profileImage,
@@ -74,11 +61,6 @@ export class AuthService {
       wallet: wallet._id,
     });
 
-    const { clientSecret } = await this.stripeService.chargeRegistrationFee(
-      user._id.toString(),
-      user.email,
-    );
-
     await this.otpService.generateOtp(user.email);
 
     const token = this.generateToken(user);
@@ -93,7 +75,6 @@ export class AuthService {
     return {
       message: 'User registered successfully. OTP sent to email.',
       token,
-      clientSecret,
       user: {
         id: user._id,
         email: user.email,
@@ -165,6 +146,49 @@ export class AuthService {
       );
     }
 
+    if (!user.hasPaid) {
+      // Create new payment intent if one doesn't exist
+      if (!user.paymentIntentId) {
+        const { clientSecret, paymentIntentId } =
+          await this.stripeService.createRegistrationPaymentIntent(
+            user._id.toString(),
+            user.email,
+          );
+
+        await this.userModel.findByIdAndUpdate(user._id, {
+          paymentIntentId,
+        });
+
+        throw new UnauthorizedException({
+          message: 'Payment required to access your account',
+          requiresPayment: true,
+          clientSecret,
+          userId: user._id.toString(),
+        });
+      } else {
+        // Check if existing payment intent was completed
+        const isPaid = await this.stripeService.verifyPayment(
+          user.paymentIntentId,
+        );
+        if (isPaid) {
+          await this.userModel.findByIdAndUpdate(user._id, {
+            hasPaid: true,
+          });
+        } else {
+          const { clientSecret } =
+            await this.stripeService.retrievePaymentIntent(
+              user.paymentIntentId,
+            );
+
+          throw new UnauthorizedException({
+            message: 'Payment required to access your account',
+            requiresPayment: true,
+            clientSecret,
+            userId: user._id.toString(),
+          });
+        }
+      }
+    }
     const token = this.generateToken(user);
 
     return {
@@ -176,6 +200,7 @@ export class AuthService {
         lastName: user.lastName,
         role: user.role,
         referralCode: user.referralCode,
+        profileImage: user.profileImage,
       },
     };
   }
@@ -229,6 +254,7 @@ export class AuthService {
       return {
         message: 'Sign in successfully via Google',
         token,
+        requiresPayment: true,
         user: {
           id: newUser._id,
           email: newUser.email,
@@ -244,6 +270,33 @@ export class AuthService {
       };
     }
 
+    // Check payment status for existing user
+    const hasPaid = await this.stripeService.chargeRegistrationFee(
+      user._id.toString(),
+      user.email,
+    );
+    if (!hasPaid) {
+      const { clientSecret } = await this.stripeService.chargeRegistrationFee(
+        user._id.toString(),
+        user.email,
+      );
+      return {
+        requiresPayment: true,
+        clientSecret,
+        message: 'Payment required to complete login',
+        user: {
+          id: user._id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          referredBy: user.referredBy,
+          referralCode: user.referralCode,
+          profileImage: user.profileImage,
+          isReferred: !!user.referredBy,
+        },
+      };
+    }
     // Existing user login
     const token = this.generateToken(user);
     const wallet = await this.walletService.getWallet(user._id.toString());
